@@ -1,0 +1,97 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: $font-sans;
+  background-color: $bg-primary;
+  color: $text-primary;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  outline: none;
+  border: none;
+}
+
+code, pre {
+  font-family: $font-mono;
+}
+
+// Print styles for native browser printing
+@media print {
+  // Hide all application UI during browser printing
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .no-print,
+  nav,
+  header,
+  .editor-pane,
+  .toolbar-container,
+  .tabs-bar,
+  .modal-overlay,
+  .zoom-controls {
+    display: none !important;
+  }
+
+  .app-workspace {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .preview-pane {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .preview-wrapper {
+    overflow: visible !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .print-iframe-target {
+    width: 100% !important;
+    height: auto !important;
+    border: none !important;
+    display: block !important;
+  }
+}

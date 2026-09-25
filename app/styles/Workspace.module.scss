@@ -1,0 +1,95 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.workspaceContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: $bg-primary;
+}
+
+.mainContent {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+
+  @include mobile {
+    flex-direction: column;
+  }
+}
+
+.leftPane {
+  width: 48%;
+  min-width: 320px;
+  max-width: 65%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: $bg-surface;
+  border-right: 1px solid $border-subtle;
+  position: relative;
+
+  @include mobile {
+    width: 100%;
+    max-width: 100%;
+    min-width: 100%;
+    display: none; // Managed via active mobile tab
+    &.mobileActive {
+      display: flex;
+    }
+  }
+}
+
+.rightPane {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: $bg-preview-canvas;
+  overflow: hidden;
+  position: relative;
+
+  @include mobile {
+    display: none; // Managed via active mobile tab
+    &.mobileActive {
+      display: flex;
+    }
+  }
+}
+
+.mobileNavTabs {
+  display: none;
+  height: 44px;
+  background: $bg-surface;
+  border-top: 1px solid $border-subtle;
+  flex-shrink: 0;
+
+  @include mobile {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+}
+
+.mobileTabBtn {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: $text-secondary;
+  font-weight: 500;
+  transition: all $transition-fast;
+
+  &.active {
+    color: $accent-green;
+    font-weight: 600;
+    border-top: 2px solid $accent-green;
+    background: rgba(16, 185, 129, 0.05);
+  }
+}

@@ -1,0 +1,208 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.editorContainer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: $bg-surface;
+  border-bottom: 1px solid $border-subtle;
+  font-size: 12px;
+  color: $text-secondary;
+}
+
+.varChipsSection {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: $bg-surface-elevated;
+  border-bottom: 1px solid $border-subtle;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 11px;
+  @include custom-scrollbar;
+
+  .chipLabel {
+    color: $text-muted;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .varChip {
+    display: inline-flex;
+    align-items: center;
+    background: $bg-card;
+    color: $color-info;
+    padding: 2px 7px;
+    border-radius: $radius-sm;
+    font-family: $font-mono;
+    font-size: 11px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: $color-info;
+    }
+  }
+}
+
+.codeAreaWrapper {
+  display: flex;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: $bg-primary;
+}
+
+.lineNumbers {
+  width: 44px;
+  padding: 12px 6px;
+  background: rgba(11, 19, 43, 0.6);
+  border-right: 1px solid $border-subtle;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: right;
+  user-select: none;
+  overflow: hidden;
+}
+
+.codeTextarea {
+  flex: 1;
+  height: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  color: $text-code;
+  font-family: $font-mono;
+  font-size: 12.5px;
+  line-height: 20px;
+  resize: none;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  overflow-y: auto;
+  tab-size: 2;
+  @include custom-scrollbar;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+}
+
+// Validation Banner
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: $color-error-bg;
+  border-top: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 12px;
+  font-family: $font-mono;
+}
+
+.successBanner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(16, 185, 129, 0.08);
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
+  color: $accent-green;
+  font-size: 11px;
+}
+
+// Form Editor
+.formScrollContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  @include custom-scrollbar;
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 650px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .keyBadge {
+      font-family: $font-mono;
+      font-size: 10px;
+      color: $text-muted;
+      background: $bg-surface-elevated;
+      padding: 1px 5px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  input, textarea {
+    background: $bg-surface-elevated;
+    border: 1px solid $border-medium;
+    border-radius: $radius-md;
+    padding: 8px 12px;
+    color: $text-primary;
+    font-size: 13px;
+    transition: all $transition-fast;
+
+    &:focus {
+      border-color: $accent-green;
+      box-shadow: 0 0 0 2px $accent-green-light;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: $font-mono;
+    font-size: 12px;
+  }
+}
+
+.subformSection {
+  background: $bg-surface-elevated;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  padding: 16px;
+  margin-top: 8px;
+
+  .sectionTitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: $accent-green;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

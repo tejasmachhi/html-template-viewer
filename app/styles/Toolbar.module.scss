@@ -1,0 +1,91 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.toolbar {
+  height: $toolbar-height;
+  background-color: $bg-primary;
+  border-bottom: 1px solid $border-subtle;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editorTabs {
+  display: flex;
+  background: $bg-surface;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  padding: 2px;
+  gap: 2px;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: $text-secondary;
+  border-radius: $radius-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &.active {
+    background: $bg-card;
+    color: #ffffff;
+    font-weight: 600;
+  }
+}
+
+.subTabBadge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: $radius-sm;
+  background: rgba(255, 255, 255, 0.1);
+  color: $text-secondary;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: $text-secondary;
+  border-radius: $radius-sm;
+  border: 1px solid transparent;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $text-primary;
+    background: $bg-surface;
+    border-color: $border-subtle;
+  }
+}
+
+.dangerBtn {
+  &:hover {
+    color: $color-error;
+    background: $color-error-bg;
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+}
