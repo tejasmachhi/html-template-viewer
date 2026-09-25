@@ -7,8 +7,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(11, 19, 43, 0.75);
-  backdrop-filter: blur(4px);
+  background: var(--modal-overlay);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,15 +26,15 @@
   border: 1px solid $border-medium;
   border-radius: $radius-lg;
   width: 90%;
-  max-width: 500px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  max-width: 520px;
+  box-shadow: var(--shadow-elevated);
   overflow: hidden;
-  animation: slideUp 0.2s ease-out;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
-  from { transform: translateY(12px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from { transform: translateY(16px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 .modalHeader {
@@ -46,7 +46,7 @@
   border-bottom: 1px solid $border-subtle;
 
   h3 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: $text-primary;
     display: flex;
@@ -56,7 +56,7 @@
 
   .closeBtn {
     color: $text-secondary;
-    padding: 4px;
+    padding: 6px;
     border-radius: $radius-sm;
     transition: all $transition-fast;
 
@@ -68,7 +68,7 @@
 }
 
 .modalBody {
-  padding: 20px;
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -109,8 +109,8 @@
   }
 
   .tipBox {
-    background: rgba(56, 189, 248, 0.08);
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: rgba(41, 151, 255, 0.08);
+    border: 1px solid rgba(41, 151, 255, 0.25);
     border-radius: $radius-md;
     padding: 10px 14px;
     font-size: 12px;
@@ -118,14 +118,174 @@
   }
 }
 
+// Email Modal Specific Styles
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-primary;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .badgeRequired {
+      font-size: 10px;
+      color: $color-info;
+      font-weight: 500;
+    }
+  }
+
+  .inputField {
+    background: var(--input-bg);
+    border: 1px solid $border-medium;
+    border-radius: $radius-md;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    color: $text-primary;
+    transition: all $transition-fast;
+
+    &:focus {
+      border-color: $accent-green;
+      box-shadow: 0 0 0 3px $accent-green-light;
+    }
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+}
+
+.quickPillWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+
+  .pillBtn {
+    font-size: 11px;
+    background: $bg-card;
+    border: 1px solid $border-subtle;
+    border-radius: 20px;
+    padding: 3px 10px;
+    color: $text-secondary;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      border-color: $accent-green;
+      color: $accent-green;
+      background: $accent-green-light;
+    }
+  }
+}
+
+.templateSummaryBanner {
+  background: $bg-card;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-md;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .tmplTitle {
+    font-weight: 600;
+    font-size: 13px;
+    color: $text-primary;
+  }
+
+  .tmplTag {
+    font-size: 11px;
+    background: $accent-green-light;
+    color: $accent-green;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+}
+
+.successCard {
+  background: rgba(40, 205, 65, 0.1);
+  border: 1px solid rgba(40, 205, 65, 0.3);
+  border-radius: $radius-md;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+
+  .successIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #28cd41;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(40, 205, 65, 0.3);
+  }
+
+  .successTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  .successMsg {
+    font-size: 12.5px;
+    color: $text-secondary;
+    line-height: 1.5;
+  }
+
+  .metaInfo {
+    font-size: 11px;
+    font-family: $font-mono;
+    color: $text-muted;
+    background: var(--input-bg);
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+}
+
+.errorBanner {
+  background: $color-error-bg;
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  border-radius: $radius-md;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: $color-error;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .modalFooter {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
   padding: 14px 20px;
   background: $bg-surface-elevated;
   border-top: 1px solid $border-subtle;
+
+  .footerLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .footerRight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
   .btnCancel {
     padding: 8px 16px;
@@ -145,16 +305,37 @@
     align-items: center;
     gap: 6px;
     padding: 8px 18px;
-    background: $accent-green;
+    background: linear-gradient(135deg, #0071e3 0%, #0077ed 100%);
     color: #ffffff;
     font-size: 13px;
     font-weight: 600;
     border-radius: $radius-md;
     transition: all $transition-fast;
-    box-shadow: 0 2px 8px $accent-green-glow;
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.35);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0077ed 0%, #005bb5 100%);
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.45);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btnMailto {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: $color-info;
+    padding: 6px 10px;
+    border-radius: $radius-sm;
+    transition: all $transition-fast;
 
     &:hover {
-      background: $accent-green-hover;
+      background: $accent-green-light;
     }
   }
 }

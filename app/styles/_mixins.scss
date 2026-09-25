@@ -26,13 +26,13 @@
     height: 6px;
   }
   &::-webkit-scrollbar-track {
-    background: rgba(11, 19, 43, 0.4);
+    background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: $border-medium;
+    background: var(--border-medium);
     border-radius: 4px;
     &:hover {
-      background: lighten($border-medium, 10%);
+      background: var(--border-hover);
     }
   }
 }
@@ -43,13 +43,13 @@
     height: 6px;
   }
   &::-webkit-scrollbar-track {
-    background: #e2e8f0;
+    background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #d2d2d7;
     border-radius: 4px;
     &:hover {
-      background: #94a3b8;
+      background: #86868b;
     }
   }
 }

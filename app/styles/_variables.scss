@@ -1,55 +1,55 @@
-// Design Tokens - Template Lab
-// Dark blue primary theme with emerald green accents
+// Design Tokens - Template Lab & Doc Viewer
+// Variables are mapped to CSS custom properties defined in globals.scss
 
-// Colors - Primary & Background
-$bg-primary: #0b132b;
-$bg-surface: #111c38;
-$bg-surface-elevated: #162447;
-$bg-card: #1c2b54;
-$bg-subtle: #243566;
+// Colors mapped to CSS Custom Properties
+$bg-primary: var(--bg-primary);
+$bg-surface: var(--bg-surface);
+$bg-surface-elevated: var(--bg-surface-elevated);
+$bg-card: var(--bg-card);
+$bg-subtle: var(--bg-subtle);
 
 // Canvas & Preview Backgrounds
-$bg-preview-canvas: #0d1527;
-$bg-preview-light: #f1f5f9;
-$bg-email-shell: #e2e8f0;
+$bg-preview-canvas: var(--bg-preview-canvas);
+$bg-preview-light: var(--bg-preview-light);
+$bg-email-shell: var(--bg-subtle);
 $bg-paper: #ffffff;
 
 // Borders & Dividers
-$border-subtle: #1e2e50;
-$border-medium: #2a3e6c;
-$border-focus: #10b981;
+$border-subtle: var(--border-subtle);
+$border-medium: var(--border-medium);
+$border-focus: var(--accent-color);
 
-// Accent Colors (Emerald / Mint)
-$accent-green: #10b981;
-$accent-green-hover: #059669;
-$accent-green-light: rgba(16, 185, 129, 0.12);
-$accent-green-glow: rgba(16, 185, 129, 0.25);
+// Accent Colors
+$accent-green: var(--accent-color);
+$accent-green-hover: var(--accent-color-hover);
+$accent-green-light: var(--accent-color-light);
+$accent-green-glow: var(--accent-color-glow);
 
 // Functional Colors
-$color-info: #38bdf8;
-$color-warning: #f59e0b;
-$color-warning-bg: rgba(245, 158, 11, 0.12);
-$color-error: #ef4444;
-$color-error-bg: rgba(239, 68, 68, 0.12);
-$color-success: #10b981;
+$color-info: var(--color-info);
+$color-warning: var(--color-warning);
+$color-warning-bg: var(--color-warning-bg);
+$color-error: var(--color-error);
+$color-error-bg: var(--color-error-bg);
+$color-success: var(--color-success);
 
 // Typography Colors
-$text-primary: #f8fafc;
-$text-secondary: #94a3b8;
-$text-muted: #64748b;
-$text-code: #e2e8f0;
-$text-dark-doc: #1e293b;
+$text-primary: var(--text-primary);
+$text-secondary: var(--text-secondary);
+$text-muted: var(--text-muted);
+$text-code: var(--text-code);
+$text-dark-doc: #1d1d1f;
 
 // Typography Fonts
-$font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-$font-mono: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
+$font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+$font-mono: 'JetBrains Mono', 'SF Mono', Consolas, Monaco, monospace;
 
 // Layout & Dimensions
 $navbar-height: 56px;
 $toolbar-height: 44px;
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
 $radius-full: 9999px;
 
 // A4 Dimensions (210mm x 297mm)

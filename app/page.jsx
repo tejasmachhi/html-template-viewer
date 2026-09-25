@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Toolbar from '../components/Toolbar';
 import HtmlEditor from '../components/HtmlEditor';
 import DataEditor from '../components/DataEditor';
 import PreviewContainer from '../components/PreviewContainer';
 import PrintModal from '../components/PrintModal';
+import SendEmailModal from '../components/SendEmailModal';
 import { SAMPLE_TEMPLATES } from '../utils/sampleTemplates';
 import { renderTemplate } from '../utils/templateEngine';
 import { validateJson } from '../utils/validateJson';
@@ -22,6 +23,29 @@ export default function TemplateLabPage() {
   const [htmlTemplate, setHtmlTemplate] = useState(initialPreset.html);
   const [jsonString, setJsonString] = useState(JSON.stringify(initialPreset.data, null, 2));
 
+  // Dark / Light Theme state
+  const [theme, setTheme] = useState('dark');
+
+  // Load saved theme on client mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('apple_doc_viewer_theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  }, []);
+
+  const handleToggleTheme = useCallback(() => {
+    setTheme((prevTheme) => {
+      const nextTheme = prevTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('apple_doc_viewer_theme', nextTheme);
+      document.documentElement.setAttribute('data-theme', nextTheme);
+      return nextTheme;
+    });
+  }, []);
+
   // Editor and preview tabs
   const [activeEditorTab, setActiveEditorTab] = useState('html'); // 'html' | 'data'
   const [dataSubTab, setDataSubTab] = useState('json'); // 'json' | 'form'
@@ -30,9 +54,10 @@ export default function TemplateLabPage() {
   // Mobile layout tab
   const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
 
-  // UI state
+  // UI modal states
   const [isCopied, setIsCopied] = useState(false);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [isSendEmailModalOpen, setIsSendEmailModalOpen] = useState(false);
 
   // Parse JSON data safely
   const parsedDataState = useMemo(() => {
@@ -44,6 +69,17 @@ export default function TemplateLabPage() {
     const data = parsedDataState.isValid ? parsedDataState.data : {};
     return renderTemplate(htmlTemplate, data);
   }, [htmlTemplate, parsedDataState]);
+
+  // Active template metadata
+  const activeTemplate = useMemo(() => {
+    return SAMPLE_TEMPLATES.find((t) => t.id === selectedTemplateId) || SAMPLE_TEMPLATES[0];
+  }, [selectedTemplateId]);
+
+  // Extract recipient email from dynamic data
+  const defaultRecipientEmail = useMemo(() => {
+    const d = parsedDataState.data || {};
+    return d.customerEmail || d.appleId || d.attendeeEmail || 'customer@example.com';
+  }, [parsedDataState.data]);
 
   // Handle template selection
   const handleSelectTemplate = useCallback((templateId) => {
@@ -100,9 +136,9 @@ export default function TemplateLabPage() {
 
   // Direct print trigger
   const handleTriggerPrint = useCallback(() => {
-    const title = SAMPLE_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name || 'Document';
+    const title = activeTemplate.name || 'Apple Document';
     printDocument(renderedHtml, title);
-  }, [renderedHtml, selectedTemplateId]);
+  }, [renderedHtml, activeTemplate]);
 
   return (
     <div className={styles.workspaceContainer}>
@@ -114,6 +150,9 @@ export default function TemplateLabPage() {
         onChangeViewMode={setViewMode}
         onTriggerPrint={handleTriggerPrint}
         onOpenPdfModal={() => setIsPdfModalOpen(true)}
+        onOpenSendEmailModal={() => setIsSendEmailModalOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Split-Pane Workspace */}
@@ -199,11 +238,21 @@ export default function TemplateLabPage() {
         </button>
       </div>
 
-      {/* Save as PDF Helper Modal */}
+      {/* Save as PDF Modal */}
       <PrintModal
         isOpen={isPdfModalOpen}
         onClose={() => setIsPdfModalOpen(false)}
         onConfirmPrint={handleTriggerPrint}
+      />
+
+      {/* Send Email Modal */}
+      <SendEmailModal
+        isOpen={isSendEmailModalOpen}
+        onClose={() => setIsSendEmailModalOpen(false)}
+        renderedHtml={renderedHtml}
+        templateName={activeTemplate.name}
+        defaultRecipient={defaultRecipientEmail}
+        defaultSubject={`Apple - ${activeTemplate.name}`}
       />
     </div>
   );

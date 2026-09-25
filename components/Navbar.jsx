@@ -8,7 +8,10 @@ import {
   Printer, 
   Download, 
   Layers,
-  Sparkles
+  Sparkles,
+  Send,
+  Sun,
+  Moon
 } from 'lucide-react';
 import styles from '../app/styles/Navbar.module.scss';
 import { SAMPLE_TEMPLATES } from '../utils/sampleTemplates';
@@ -19,7 +22,10 @@ export default function Navbar({
   viewMode,
   onChangeViewMode,
   onTriggerPrint,
-  onOpenPdfModal
+  onOpenPdfModal,
+  onOpenSendEmailModal,
+  theme,
+  onToggleTheme
 }) {
   return (
     <nav className={styles.navbar}>
@@ -30,18 +36,18 @@ export default function Navbar({
         <div className={styles.titleArea}>
           <div className={styles.title}>
             Template Lab
-            <span className={styles.badge}>v1.0</span>
+            <span className={styles.badge}>Apple Edition</span>
           </div>
           <div className={styles.statusIndicator}>
             <span className={styles.dot}></span>
-            Live Preview
+            Live Studio
           </div>
         </div>
       </div>
 
       <div className={styles.centerControls}>
         <div className={styles.templateSelectWrapper}>
-          <Sparkles size={14} color="#10b981" />
+          <Sparkles size={14} color="#0071e3" />
           <select 
             value={selectedTemplateId} 
             onChange={(e) => onSelectTemplate(e.target.value)}
@@ -60,7 +66,7 @@ export default function Navbar({
             type="button"
             className={`${styles.viewBtn} ${viewMode === 'email' ? styles.active : ''}`}
             onClick={() => onChangeViewMode('email')}
-            title="Email Client View (600-700px centered)"
+            title="Email Client View (600-640px centered)"
           >
             <Mail size={14} />
             <span>Email</span>
@@ -89,13 +95,35 @@ export default function Navbar({
       </div>
 
       <div className={styles.actions}>
+        {/* Dark / Light Mode Toggle */}
+        <button
+          type="button"
+          className={styles.themeToggleBtn}
+          onClick={onToggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
+        {/* Send Email Action */}
+        <button
+          type="button"
+          className={styles.btnSendEmail}
+          onClick={onOpenSendEmailModal}
+          title="Send this rendered template directly via Email"
+        >
+          <Send size={14} />
+          <span>Send Email</span>
+        </button>
+
         <button
           type="button"
           className={styles.btnSecondary}
           onClick={onTriggerPrint}
           title="Print document using browser print dialog"
         >
-          <Printer size={15} />
+          <Printer size={14} />
           <span>Print</span>
         </button>
 
@@ -105,8 +133,8 @@ export default function Navbar({
           onClick={onOpenPdfModal}
           title="Save document as PDF"
         >
-          <Download size={15} />
-          <span>Save as PDF</span>
+          <Download size={14} />
+          <span>Save PDF</span>
         </button>
       </div>
     </nav>
