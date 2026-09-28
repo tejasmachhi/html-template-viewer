@@ -71,7 +71,7 @@
 .lineNumbers {
   width: 44px;
   padding: 12px 6px;
-  background: rgba(11, 19, 43, 0.6);
+  background: $bg-surface-elevated;
   border-right: 1px solid $border-subtle;
   color: $text-muted;
   font-family: $font-mono;

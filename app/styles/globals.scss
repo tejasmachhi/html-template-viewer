@@ -1,44 +1,7 @@
 @use './variables' as *;
 @use './mixins' as *;
 
-:root, [data-theme="dark"] {
-  --bg-primary: #0a0e17;
-  --bg-surface: #111726;
-  --bg-surface-elevated: #172138;
-  --bg-card: #1c2b48;
-  --bg-subtle: #253860;
-  --bg-preview-canvas: #070a12;
-  --bg-preview-light: #f5f5f7;
-  --bg-paper: #ffffff;
-  
-  --border-subtle: #1e2c4c;
-  --border-medium: #2a3e6c;
-  --border-hover: #3d5896;
-
-  --accent-color: #2997ff;
-  --accent-color-hover: #0077ed;
-  --accent-color-light: rgba(41, 151, 255, 0.12);
-  --accent-color-glow: rgba(41, 151, 255, 0.25);
-
-  --color-success: #34c759;
-  --color-info: #2997ff;
-  --color-warning: #ff9f0a;
-  --color-warning-bg: rgba(255, 159, 10, 0.12);
-  --color-error: #ff453a;
-  --color-error-bg: rgba(255, 69, 58, 0.15);
-
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-code: #f1f5f9;
-  --text-dark-doc: #1d1d1f;
-
-  --input-bg: #0d1424;
-  --modal-overlay: rgba(5, 8, 15, 0.78);
-  --shadow-elevated: 0 16px 36px rgba(0, 0, 0, 0.5);
-}
-
-[data-theme="light"] {
+:root, [data-theme="light"] {
   --bg-primary: #f5f5f7;
   --bg-surface: #ffffff;
   --bg-surface-elevated: #fbfbfd;
@@ -73,6 +36,43 @@
   --input-bg: #ffffff;
   --modal-overlay: rgba(0, 0, 0, 0.45);
   --shadow-elevated: 0 16px 36px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0a0e17;
+  --bg-surface: #111726;
+  --bg-surface-elevated: #172138;
+  --bg-card: #1c2b48;
+  --bg-subtle: #253860;
+  --bg-preview-canvas: #070a12;
+  --bg-preview-light: #f5f5f7;
+  --bg-paper: #ffffff;
+  
+  --border-subtle: #1e2c4c;
+  --border-medium: #2a3e6c;
+  --border-hover: #3d5896;
+
+  --accent-color: #2997ff;
+  --accent-color-hover: #0077ed;
+  --accent-color-light: rgba(41, 151, 255, 0.12);
+  --accent-color-glow: rgba(41, 151, 255, 0.25);
+
+  --color-success: #34c759;
+  --color-info: #2997ff;
+  --color-warning: #ff9f0a;
+  --color-warning-bg: rgba(255, 159, 10, 0.12);
+  --color-error: #ff453a;
+  --color-error-bg: rgba(255, 69, 58, 0.15);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-code: #f1f5f9;
+  --text-dark-doc: #1d1d1f;
+
+  --input-bg: #0d1424;
+  --modal-overlay: rgba(5, 8, 15, 0.78);
+  --shadow-elevated: 0 16px 36px rgba(0, 0, 0, 0.5);
 }
 
 *, *::before, *::after {

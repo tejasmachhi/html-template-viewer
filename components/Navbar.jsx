@@ -8,17 +8,13 @@ import {
   Printer, 
   Download, 
   Layers,
-  Sparkles,
   Send,
   Sun,
   Moon
 } from 'lucide-react';
 import styles from '../app/styles/Navbar.module.scss';
-import { SAMPLE_TEMPLATES } from '../utils/sampleTemplates';
 
 export default function Navbar({
-  selectedTemplateId,
-  onSelectTemplate,
   viewMode,
   onChangeViewMode,
   onTriggerPrint,
@@ -36,31 +32,16 @@ export default function Navbar({
         <div className={styles.titleArea}>
           <div className={styles.title}>
             Template Lab
-            <span className={styles.badge}>Apple Edition</span>
+            <span className={styles.badge}>Live Studio</span>
           </div>
           <div className={styles.statusIndicator}>
             <span className={styles.dot}></span>
-            Live Studio
+            Document &amp; Email Viewer
           </div>
         </div>
       </div>
 
       <div className={styles.centerControls}>
-        <div className={styles.templateSelectWrapper}>
-          <Sparkles size={14} color="#0071e3" />
-          <select 
-            value={selectedTemplateId} 
-            onChange={(e) => onSelectTemplate(e.target.value)}
-            aria-label="Select Template Preset"
-          >
-            {SAMPLE_TEMPLATES.map((tmpl) => (
-              <option key={tmpl.id} value={tmpl.id}>
-                {tmpl.name} ({tmpl.category})
-              </option>
-            ))}
-          </select>
-        </div>
-
         <div className={styles.viewModeToggle}>
           <button
             type="button"

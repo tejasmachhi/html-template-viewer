@@ -8,7 +8,6 @@ import DataEditor from '../components/DataEditor';
 import PreviewContainer from '../components/PreviewContainer';
 import PrintModal from '../components/PrintModal';
 import SendEmailModal from '../components/SendEmailModal';
-import { SAMPLE_TEMPLATES } from '../utils/sampleTemplates';
 import { renderTemplate } from '../utils/templateEngine';
 import { validateJson } from '../utils/validateJson';
 import { formatHtml, formatJson } from '../utils/formatters';
@@ -16,31 +15,32 @@ import { printDocument } from '../utils/printDocument';
 import styles from './styles/Workspace.module.scss';
 import { Code2, Database, Eye } from 'lucide-react';
 
+const DEFAULT_EMPTY_HTML = `<!-- Paste your HTML template here -->\n`;
+const DEFAULT_EMPTY_JSON = `{\n  \n}`;
+
 export default function TemplateLabPage() {
-  const initialPreset = SAMPLE_TEMPLATES[0];
+  const [htmlTemplate, setHtmlTemplate] = useState(DEFAULT_EMPTY_HTML);
+  const [jsonString, setJsonString] = useState(DEFAULT_EMPTY_JSON);
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState(initialPreset.id);
-  const [htmlTemplate, setHtmlTemplate] = useState(initialPreset.html);
-  const [jsonString, setJsonString] = useState(JSON.stringify(initialPreset.data, null, 2));
+  // Light / Dark Theme state (Light by default)
+  const [theme, setTheme] = useState('light');
 
-  // Dark / Light Theme state
-  const [theme, setTheme] = useState('dark');
-
-  // Load saved theme on client mount
+  // Load saved theme on client mount or default to light
   useEffect(() => {
-    const savedTheme = localStorage.getItem('apple_doc_viewer_theme');
+    const savedTheme = localStorage.getItem('doc_viewer_theme');
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
+      setTheme('light');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   }, []);
 
   const handleToggleTheme = useCallback(() => {
     setTheme((prevTheme) => {
       const nextTheme = prevTheme === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('apple_doc_viewer_theme', nextTheme);
+      localStorage.setItem('doc_viewer_theme', nextTheme);
       document.documentElement.setAttribute('data-theme', nextTheme);
       return nextTheme;
     });
@@ -70,32 +70,17 @@ export default function TemplateLabPage() {
     return renderTemplate(htmlTemplate, data);
   }, [htmlTemplate, parsedDataState]);
 
-  // Active template metadata
-  const activeTemplate = useMemo(() => {
-    return SAMPLE_TEMPLATES.find((t) => t.id === selectedTemplateId) || SAMPLE_TEMPLATES[0];
-  }, [selectedTemplateId]);
+  // Extract template title from HTML or fallback
+  const templateTitle = useMemo(() => {
+    const match = htmlTemplate.match(/<title[^>]*>(.*?)<\/title>/i);
+    return match ? match[1].trim() : 'Document Preview';
+  }, [htmlTemplate]);
 
   // Extract recipient email from dynamic data
   const defaultRecipientEmail = useMemo(() => {
     const d = parsedDataState.data || {};
-    return d.customerEmail || d.appleId || d.attendeeEmail || 'customer@example.com';
+    return d.customerEmail || d.email || d.appleId || d.attendeeEmail || '';
   }, [parsedDataState.data]);
-
-  // Handle template selection
-  const handleSelectTemplate = useCallback((templateId) => {
-    const found = SAMPLE_TEMPLATES.find((t) => t.id === templateId);
-    if (found) {
-      setSelectedTemplateId(found.id);
-      setHtmlTemplate(found.html);
-      setJsonString(JSON.stringify(found.data, null, 2));
-      // Adjust view mode based on template recommendation
-      if (found.category === 'Document') {
-        setViewMode('document');
-      } else {
-        setViewMode('email');
-      }
-    }
-  }, []);
 
   // Format code (HTML or JSON)
   const handleFormatCode = useCallback(() => {
@@ -108,12 +93,11 @@ export default function TemplateLabPage() {
     }
   }, [activeEditorTab, htmlTemplate, jsonString]);
 
-  // Reset to original preset
+  // Reset to empty template
   const handleResetTemplate = useCallback(() => {
-    const found = SAMPLE_TEMPLATES.find((t) => t.id === selectedTemplateId) || SAMPLE_TEMPLATES[0];
-    setHtmlTemplate(found.html);
-    setJsonString(JSON.stringify(found.data, null, 2));
-  }, [selectedTemplateId]);
+    setHtmlTemplate(DEFAULT_EMPTY_HTML);
+    setJsonString(DEFAULT_EMPTY_JSON);
+  }, []);
 
   // Clear current input
   const handleClearInput = useCallback(() => {
@@ -136,16 +120,13 @@ export default function TemplateLabPage() {
 
   // Direct print trigger
   const handleTriggerPrint = useCallback(() => {
-    const title = activeTemplate.name || 'Apple Document';
-    printDocument(renderedHtml, title);
-  }, [renderedHtml, activeTemplate]);
+    printDocument(renderedHtml, templateTitle);
+  }, [renderedHtml, templateTitle]);
 
   return (
     <div className={styles.workspaceContainer}>
       {/* Top Navbar */}
       <Navbar
-        selectedTemplateId={selectedTemplateId}
-        onSelectTemplate={handleSelectTemplate}
         viewMode={viewMode}
         onChangeViewMode={setViewMode}
         onTriggerPrint={handleTriggerPrint}
@@ -250,9 +231,9 @@ export default function TemplateLabPage() {
         isOpen={isSendEmailModalOpen}
         onClose={() => setIsSendEmailModalOpen(false)}
         renderedHtml={renderedHtml}
-        templateName={activeTemplate.name}
+        templateName={templateTitle}
         defaultRecipient={defaultRecipientEmail}
-        defaultSubject={`Apple - ${activeTemplate.name}`}
+        defaultSubject={templateTitle}
       />
     </div>
   );

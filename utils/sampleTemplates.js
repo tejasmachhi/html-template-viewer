@@ -1,6 +1,6 @@
 /**
- * Sample Templates & Corresponding Mock Data
- * Apple-inspired sleek, modern templates & clean typography
+ * Sample Templates - Apple Edition
+ * Pure, finalized HTML templates with real Apple Store styling and data (no {{tags}}).
  */
 
 export const SAMPLE_TEMPLATES = [
@@ -8,49 +8,13 @@ export const SAMPLE_TEMPLATES = [
     id: 'apple-store-receipt',
     name: 'Apple Store Order Receipt',
     category: 'Email',
-    description: 'Minimalist Apple Store order & delivery confirmation with product breakdowns and Apple Pay payment.',
-    data: {
-      companyName: 'Apple Store',
-      companyUrl: 'https://www.apple.com/in',
-      supportPhone: '000800 040 1966',
-      customerName: 'Tejas Machhi',
-      customerEmail: 'tejas.machhi@icloud.com',
-      orderNumber: 'W109842104',
-      date: '25 September 2026',
-      paymentMethod: 'Apple Pay (Mastercard ending in 4092)',
-      shippingAddress: 'Apple Bandra, Maker Maxity, Bandra Kurla Complex, Mumbai, MH 400051',
-      deliveryEstimate: 'Tomorrow, 26 Sep by 10:30 AM',
-      items: [
-        { 
-          name: 'iPhone 16 Pro Max 256GB - Natural Titanium', 
-          sku: 'MYWV3HN/A', 
-          qty: 1, 
-          price: '1,44,900' 
-        },
-        { 
-          name: 'Apple Watch Ultra 2 (GPS + Cellular) 49mm Titanium Case with Dark Gray Trail Loop', 
-          sku: 'MX4A3HN/A', 
-          qty: 1, 
-          price: '89,900' 
-        },
-        { 
-          name: 'AirPods Pro 2 with USB-C MagSafe Case (Active Noise Cancellation)', 
-          sku: 'MTJV3HN/A', 
-          qty: 1, 
-          price: '24,900' 
-        }
-      ],
-      subtotal: '2,59,700',
-      shippingFee: 'Free Express Shipping',
-      tax: '39,615',
-      total: '2,59,700'
-    },
+    description: 'Official Apple Store order & delivery confirmation with product breakdowns and Apple Pay payment.',
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Apple Order {{orderNumber}}</title>
+  <title>Your Apple Order W109842104</title>
   <style>
     body {
       margin: 0;
@@ -248,7 +212,7 @@ export const SAMPLE_TEMPLATES = [
         </svg>
       </div>
       <h1>Thank you for your order.</h1>
-      <p>Order number: <strong style="color: #1d1d1f;">{{orderNumber}}</strong> • Placed on {{date}}</p>
+      <p>Order number: <strong style="color: #1d1d1f;">W109842104</strong> • Placed on 25 September 2026</p>
     </div>
 
     <div class="order-status-banner">
@@ -258,7 +222,7 @@ export const SAMPLE_TEMPLATES = [
       </div>
       <div class="delivery-eta">
         <div>Estimated Delivery</div>
-        <div style="color: #0071e3; font-size: 14px;">{{deliveryEstimate}}</div>
+        <div style="color: #0071e3; font-size: 14px;">Tomorrow, 26 Sep by 10:30 AM</div>
       </div>
     </div>
 
@@ -266,13 +230,13 @@ export const SAMPLE_TEMPLATES = [
       <div class="info-grid">
         <div class="info-cell">
           <div class="label">Delivers To</div>
-          <div class="value">{{customerName}}</div>
-          <div class="value" style="color: #6e6e73;">{{shippingAddress}}</div>
+          <div class="value">Tejas Machhi</div>
+          <div class="value" style="color: #6e6e73;">Apple Bandra, Maker Maxity, Bandra Kurla Complex, Mumbai, MH 400051</div>
         </div>
         <div class="info-cell">
           <div class="label">Payment Method</div>
-          <div class="value">{{paymentMethod}}</div>
-          <div class="value" style="color: #6e6e73;">Billed to {{customerEmail}}</div>
+          <div class="value">Apple Pay (Mastercard ending in 4092)</div>
+          <div class="value" style="color: #6e6e73;">Billed to tejas.machhi@icloud.com</div>
         </div>
       </div>
 
@@ -287,16 +251,30 @@ export const SAMPLE_TEMPLATES = [
           </tr>
         </thead>
         <tbody>
-          {{#each items}}
           <tr>
             <td>
-              <div class="product-title">{{name}}</div>
-              <div class="product-sku">Part No: {{sku}}</div>
+              <div class="product-title">iPhone 16 Pro Max 256GB - Natural Titanium</div>
+              <div class="product-sku">Part No: MYWV3HN/A</div>
             </td>
-            <td class="text-right" style="font-weight: 500;">{{qty}}</td>
-            <td class="text-right" style="font-weight: 600; color: #1d1d1f;">₹{{price}}</td>
+            <td class="text-right" style="font-weight: 500;">1</td>
+            <td class="text-right" style="font-weight: 600; color: #1d1d1f;">₹1,44,900</td>
           </tr>
-          {{/each}}
+          <tr>
+            <td>
+              <div class="product-title">Apple Watch Ultra 2 (GPS + Cellular) 49mm Titanium Case with Dark Gray Trail Loop</div>
+              <div class="product-sku">Part No: MX4A3HN/A</div>
+            </td>
+            <td class="text-right" style="font-weight: 500;">1</td>
+            <td class="text-right" style="font-weight: 600; color: #1d1d1f;">₹89,900</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="product-title">AirPods Pro 2 with USB-C MagSafe Case (Active Noise Cancellation)</div>
+              <div class="product-sku">Part No: MTJV3HN/A</div>
+            </td>
+            <td class="text-right" style="font-weight: 500;">1</td>
+            <td class="text-right" style="font-weight: 600; color: #1d1d1f;">₹24,900</td>
+          </tr>
         </tbody>
       </table>
 
@@ -304,28 +282,28 @@ export const SAMPLE_TEMPLATES = [
         <div class="summary-card">
           <div class="summary-line">
             <span>Subtotal</span>
-            <span>₹{{subtotal}}</span>
+            <span>₹2,59,700</span>
           </div>
           <div class="summary-line">
             <span>Shipping</span>
-            <span style="color: #28cd41; font-weight: 600;">{{shippingFee}}</span>
+            <span style="color: #28cd41; font-weight: 600;">Free Express Shipping</span>
           </div>
           <div class="summary-line">
             <span>Includes GST (18%)</span>
-            <span>₹{{tax}}</span>
+            <span>₹39,615</span>
           </div>
           <div class="summary-line total">
             <span>Total</span>
-            <span>₹{{total}}</span>
+            <span>₹2,59,700</span>
           </div>
         </div>
       </div>
 
-      <a href="{{companyUrl}}" class="btn-track">Track Your Order in Apple Store App →</a>
+      <a href="https://www.apple.com/in" class="btn-track">Track Your Order in Apple Store App →</a>
     </div>
 
     <div class="footer-bar">
-      Need assistance? Call Apple Support at {{supportPhone}} or visit <a href="{{companyUrl}}">apple.com/support</a>.<br>
+      Need assistance? Call Apple Support at 000800 040 1966 or visit <a href="https://www.apple.com/in/support">apple.com/support</a>.<br>
       Apple India Private Limited • UB City, Bengaluru 560001 • CIN: U30007KA1996PTC019630<br>
       © 2026 Apple Inc. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Sales Policy</a>
     </div>
@@ -338,56 +316,11 @@ export const SAMPLE_TEMPLATES = [
     name: 'Apple Official Tax Invoice (A4)',
     category: 'Document',
     description: 'Apple India official printable A4 GST tax invoice with serial numbers, AppleCare+, and tax breakdown.',
-    data: {
-      companyName: 'Apple India Private Limited',
-      companyAddress: '19th Floor, Concorde Tower C, UB City, 24 Vittal Mallya Road, Bengaluru 560001 Karnataka, India',
-      companyGst: '29AABCA1234F1Z0',
-      companyCin: 'U30007KA1996PTC019630',
-      invoiceNumber: 'APL-INV-2026-99214',
-      invoiceDate: '25 Sep 2026',
-      poNumber: 'APL-PO-88412',
-      clientName: 'Tejas Machhi',
-      clientCompany: 'Tejas Studio Technologies',
-      clientAddress: 'Flat 402, Ocean Vista, Linking Road, Bandra West, Mumbai 400050, Maharashtra',
-      clientGst: '27ABCDE1234F1Z5',
-      clientPan: 'ABCDE1234F',
-      items: [
-        { 
-          name: 'iPhone 16 Pro Max 256GB Natural Titanium (Serial: H7K92X41L, IMEI: 359128092819201)', 
-          hsn: '85171300', 
-          hours: '1', 
-          rate: '1,22,796.61', 
-          amount: '1,22,796.61' 
-        },
-        { 
-          name: 'AppleCare+ for iPhone 16 Pro Max (Plan Agreement: 994012849)', 
-          hsn: '998713', 
-          hours: '1', 
-          rate: '17,711.86', 
-          amount: '17,711.86' 
-        },
-        { 
-          name: 'Apple 30W USB-C Power Adapter (Model: A2164)', 
-          hsn: '85044090', 
-          hours: '1', 
-          rate: '3,220.34', 
-          amount: '3,220.34' 
-        }
-      ],
-      subtotal: '1,43,728.81',
-      cgst: '12,935.59',
-      sgst: '12,935.59',
-      total: '1,69,600.00',
-      bankName: 'Citibank N.A. India',
-      accountNumber: '030018492019',
-      ifscCode: 'CITI0000003',
-      notes: 'Supply made from Apple India Distribution Hub. This is a computer-generated tax invoice and requires no physical signature.'
-    },
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Tax Invoice - {{invoiceNumber}}</title>
+  <title>Tax Invoice - APL-INV-2026-99214</title>
   <style>
     @page {
       size: A4 portrait;
@@ -590,31 +523,31 @@ export const SAMPLE_TEMPLATES = [
             <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.96-14.34-6.42-9.78-11.45-20.93-15.09-33.45-3.63-12.52-5.46-24.16-5.46-34.92 0-14.67 3.75-26.68 11.24-36.03 7.5-9.35 16.94-14.15 28.34-14.4 5.34.13 10.66 1.48 15.96 4.07 5.3 2.59 9.07 3.93 11.3 4.02 2.01-.1 5.86-1.5 11.55-4.21 5.69-2.71 10.9-3.99 15.64-3.83 14.07.74 24.89 5.86 32.46 15.37-12.39 7.48-18.42 17.65-18.09 30.51.33 10.15 4.3 18.57 11.91 25.26 5.69 5.03 12.39 8.24 20.1 9.64-2.83 8.35-6.45 16.96-10.87 25.82zM119.22 33.15c0-7.39 2.76-14.54 8.28-21.46 5.52-6.92 12.39-11.35 20.61-13.29.21 1.7.32 3.17.32 4.41 0 7.39-2.87 14.54-8.61 21.46-5.74 6.92-12.8 11.13-21.18 12.63-.43-1.28-.64-2.48-.64-3.75z"/>
           </svg>
           <div>
-            <h1>{{companyName}}</h1>
+            <h1>Apple India Private Limited</h1>
           </div>
         </div>
         <p style="margin-top: 6px; font-size: 10.5px; color: #6e6e73;">
-          {{companyAddress}}<br>
-          <strong>GSTIN:</strong> {{companyGst}} • <strong>CIN:</strong> {{companyCin}}
+          19th Floor, Concorde Tower C, UB City, 24 Vittal Mallya Road, Bengaluru 560001 Karnataka, India<br>
+          <strong>GSTIN:</strong> 29AABCA1234F1Z0 • <strong>CIN:</strong> U30007KA1996PTC019630
         </p>
       </div>
 
       <div class="inv-header-meta">
         <div class="inv-type-pill">TAX INVOICE</div>
-        <div class="meta-row">Invoice No: <strong>{{invoiceNumber}}</strong></div>
-        <div class="meta-row">Invoice Date: <strong>{{invoiceDate}}</strong></div>
-        <div class="meta-row">Purchase Order: <strong>{{poNumber}}</strong></div>
+        <div class="meta-row">Invoice No: <strong>APL-INV-2026-99214</strong></div>
+        <div class="meta-row">Invoice Date: <strong>25 Sep 2026</strong></div>
+        <div class="meta-row">Purchase Order: <strong>APL-PO-88412</strong></div>
       </div>
     </div>
 
     <div class="party-grid">
       <div class="party-box">
         <div class="party-head">Billed To (Customer Details)</div>
-        <div class="party-name">{{clientCompany}}</div>
+        <div class="party-name">Tejas Studio Technologies</div>
         <div class="party-desc">
-          Attn: <strong>{{clientName}}</strong><br>
-          {{clientAddress}}<br>
-          <strong>GSTIN:</strong> {{clientGst}} | <strong>PAN:</strong> {{clientPan}}
+          Attn: <strong>Tejas Machhi</strong><br>
+          Flat 402, Ocean Vista, Linking Road, Bandra West, Mumbai 400050, Maharashtra<br>
+          <strong>GSTIN:</strong> 27ABCDE1234F1Z5 | <strong>PAN:</strong> ABCDE1234F
         </div>
       </div>
 
@@ -640,45 +573,55 @@ export const SAMPLE_TEMPLATES = [
         </tr>
       </thead>
       <tbody>
-        {{#each items}}
         <tr>
-          <td>
-            <strong>{{name}}</strong>
-          </td>
-          <td>{{hsn}}</td>
-          <td class="text-right">{{hours}}</td>
-          <td class="text-right">{{rate}}</td>
-          <td class="text-right" style="font-weight: 600;">₹{{amount}}</td>
+          <td><strong>iPhone 16 Pro Max 256GB Natural Titanium (Serial: H7K92X41L, IMEI: 359128092819201)</strong></td>
+          <td>85171300</td>
+          <td class="text-right">1</td>
+          <td class="text-right">1,22,796.61</td>
+          <td class="text-right" style="font-weight: 600;">₹1,22,796.61</td>
         </tr>
-        {{/each}}
+        <tr>
+          <td><strong>AppleCare+ for iPhone 16 Pro Max (Plan Agreement: 994012849)</strong></td>
+          <td>998713</td>
+          <td class="text-right">1</td>
+          <td class="text-right">17,711.86</td>
+          <td class="text-right" style="font-weight: 600;">₹17,711.86</td>
+        </tr>
+        <tr>
+          <td><strong>Apple 30W USB-C Power Adapter (Model: A2164)</strong></td>
+          <td>85044090</td>
+          <td class="text-right">1</td>
+          <td class="text-right">3,220.34</td>
+          <td class="text-right" style="font-weight: 600;">₹3,220.34</td>
+        </tr>
       </tbody>
     </table>
 
     <div class="totals-area">
       <div class="payment-note-card">
         <div style="font-weight: 700; color: #1d1d1f; margin-bottom: 6px; font-size: 11px;">Payment & Statutory Details:</div>
-        <div>Bank Name: <strong>{{bankName}}</strong></div>
-        <div>Virtual Account: <strong>{{accountNumber}}</strong></div>
-        <div>IFSC Code: <strong>{{ifscCode}}</strong></div>
-        <div style="margin-top: 8px; font-size: 10px; color: #86868b;">{{notes}}</div>
+        <div>Bank Name: <strong>Citibank N.A. India</strong></div>
+        <div>Virtual Account: <strong>030018492019</strong></div>
+        <div>IFSC Code: <strong>CITI0000003</strong></div>
+        <div style="margin-top: 8px; font-size: 10px; color: #86868b;">Supply made from Apple India Distribution Hub. This is a computer-generated tax invoice and requires no physical signature.</div>
       </div>
 
       <div class="calculation-box">
         <div class="calc-item">
           <span>Total Taxable Amount</span>
-          <span>₹{{subtotal}}</span>
+          <span>₹1,43,728.81</span>
         </div>
         <div class="calc-item">
           <span>CGST (9.00%)</span>
-          <span>₹{{cgst}}</span>
+          <span>₹12,935.59</span>
         </div>
         <div class="calc-item">
           <span>SGST (9.00%)</span>
-          <span>₹{{sgst}}</span>
+          <span>₹12,935.59</span>
         </div>
         <div class="calc-item grand-total">
           <span>Total Invoice Amount</span>
-          <span style="color: #0071e3;">₹{{total}}</span>
+          <span style="color: #0071e3;">₹1,69,600.00</span>
         </div>
       </div>
     </div>
@@ -689,7 +632,7 @@ export const SAMPLE_TEMPLATES = [
       </div>
       <div class="sign-container">
         Digitally Signed by<br>
-        <strong>For {{companyName}}</strong><br>
+        <strong>For Apple India Private Limited</strong><br>
         Authorized Signatory
       </div>
     </div>
@@ -702,25 +645,11 @@ export const SAMPLE_TEMPLATES = [
     name: 'Apple Keynote VIP Pass (A4)',
     category: 'Document',
     description: 'Apple Special Event Keynote pass with Steve Jobs Theater reservation, badge QR, and security clearances.',
-    data: {
-      eventName: 'Apple Special Event',
-      eventSubtitle: "It's Glowtime • Special Keynote Presentation",
-      passNumber: 'APL-VIP-0925-88',
-      attendeeName: 'Tejas Machhi',
-      attendeeAffiliation: 'Lead Engineering & Architecture Studio',
-      attendeeEmail: 'tejas.machhi@icloud.com',
-      dateTime: 'Friday, September 25, 2026 • 10:00 AM PDT',
-      location: 'Steve Jobs Theater, Apple Park',
-      address: 'One Apple Park Way, Cupertino, CA 95014',
-      seatRow: 'Section A • Row 03 • Seat 14 (VIP Press & Engineering)',
-      accessTier: 'ALL ACCESS VIP CREDENTIAL',
-      badgeNote: 'Please present this digital credential or printed A4 document with government-issued photo ID at the Apple Park Visitor Center security checkpoint.'
-    },
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>{{eventName}} - VIP Pass</title>
+  <title>Apple Special Event - VIP Pass</title>
   <style>
     @page {
       size: A4 portrait;
@@ -857,44 +786,44 @@ export const SAMPLE_TEMPLATES = [
 <body>
   <div class="badge-container">
     <div class="badge-hero">
-      <div class="event-pill">{{accessTier}}</div>
-      <h1>{{eventName}}</h1>
-      <p>{{eventSubtitle}}</p>
+      <div class="event-pill">ALL ACCESS VIP CREDENTIAL</div>
+      <h1>Apple Special Event</h1>
+      <p>It's Glowtime • Special Keynote Presentation</p>
     </div>
 
     <div class="badge-body">
       <div class="attendee-card">
-        <div class="attendee-name">{{attendeeName}}</div>
-        <div class="attendee-sub">{{attendeeAffiliation}}</div>
-        <div class="attendee-email">{{attendeeEmail}}</div>
+        <div class="attendee-name">Tejas Machhi</div>
+        <div class="attendee-sub">Lead Engineering & Architecture Studio</div>
+        <div class="attendee-email">tejas.machhi@icloud.com</div>
       </div>
 
       <div class="meta-grid">
         <div class="meta-box">
           <div class="meta-title">Date & Time</div>
-          <div class="meta-val">{{dateTime}}</div>
+          <div class="meta-val">Friday, September 25, 2026 • 10:00 AM PDT</div>
         </div>
         <div class="meta-box">
           <div class="meta-title">Auditorium Venue</div>
-          <div class="meta-val">{{location}}</div>
+          <div class="meta-val">Steve Jobs Theater, Apple Park</div>
         </div>
         <div class="meta-box">
           <div class="meta-title">Assigned Seating</div>
-          <div class="meta-val" style="color: #2997ff;">{{seatRow}}</div>
+          <div class="meta-val" style="color: #2997ff;">Section A • Row 03 • Seat 14</div>
         </div>
         <div class="meta-box">
           <div class="meta-title">Campus Address</div>
-          <div class="meta-val">{{address}}</div>
+          <div class="meta-val">One Apple Park Way, Cupertino, CA 95014</div>
         </div>
       </div>
 
       <div class="security-notice">
-        ℹ️ {{badgeNote}}
+        ℹ️ Please present this digital credential or printed A4 document with government-issued photo ID at the Apple Park Visitor Center security checkpoint.
       </div>
 
       <div class="barcode-section">
         <div style="font-size: 11px; color: #86868b; text-transform: uppercase; letter-spacing: 1px;">Digital Check-in ID</div>
-        <div class="pass-code">{{passNumber}}</div>
+        <div class="pass-code">APL-VIP-0925-88</div>
       </div>
     </div>
   </div>
@@ -906,18 +835,6 @@ export const SAMPLE_TEMPLATES = [
     name: 'Apple Services & iCloud+ Receipt',
     category: 'Email',
     description: 'Clean Apple Media Services subscription renewal receipt for Apple One & iCloud+ with Manage Subscription link.',
-    data: {
-      customerName: 'Tejas',
-      appleId: 'tejas.machhi@icloud.com',
-      subscriptionName: 'Apple One Premier Plan',
-      features: 'iCloud+ 2TB, Apple Music Family, Apple TV+, Apple Arcade, Apple Fitness+',
-      billingDate: '25 September 2026',
-      nextBillingDate: '25 October 2026',
-      billedTo: 'Mastercard ending in 4092',
-      monthlyCost: '365.00',
-      orderId: 'MKY492L019P',
-      documentNumber: '194029104829'
-    },
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1039,29 +956,29 @@ export const SAMPLE_TEMPLATES = [
         <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.96-14.34-6.42-9.78-11.45-20.93-15.09-33.45-3.63-12.52-5.46-24.16-5.46-34.92 0-14.67 3.75-26.68 11.24-36.03 7.5-9.35 16.94-14.15 28.34-14.4 5.34.13 10.66 1.48 15.96 4.07 5.3 2.59 9.07 3.93 11.3 4.02 2.01-.1 5.86-1.5 11.55-4.21 5.69-2.71 10.9-3.99 15.64-3.83 14.07.74 24.89 5.86 32.46 15.37-12.39 7.48-18.42 17.65-18.09 30.51.33 10.15 4.3 18.57 11.91 25.26 5.69 5.03 12.39 8.24 20.1 9.64-2.83 8.35-6.45 16.96-10.87 25.82zM119.22 33.15c0-7.39 2.76-14.54 8.28-21.46 5.52-6.92 12.39-11.35 20.61-13.29.21 1.7.32 3.17.32 4.41 0 7.39-2.87 14.54-8.61 21.46-5.74 6.92-12.8 11.13-21.18 12.63-.43-1.28-.64-2.48-.64-3.75z"/>
       </svg>
       <h1>Your receipt from Apple</h1>
-      <p>Apple ID: <strong>{{appleId}}</strong></p>
+      <p>Apple ID: <strong>tejas.machhi@icloud.com</strong></p>
     </div>
 
     <div class="receipt-body">
       <table class="meta-table">
         <tr>
-          <td>Order ID: <strong>{{orderId}}</strong></td>
-          <td style="text-align: right;">Billed To: <strong>{{billedTo}}</strong></td>
+          <td>Order ID: <strong>MKY492L019P</strong></td>
+          <td style="text-align: right;">Billed To: <strong>Mastercard ending in 4092</strong></td>
         </tr>
         <tr>
-          <td>Document No: <strong>{{documentNumber}}</strong></td>
-          <td style="text-align: right;">Date: <strong>{{billingDate}}</strong></td>
+          <td>Document No: <strong>194029104829</strong></td>
+          <td style="text-align: right;">Date: <strong>25 September 2026</strong></td>
         </tr>
       </table>
 
       <div class="service-card">
         <div class="service-info">
-          <h2>{{subscriptionName}}</h2>
-          <p>{{features}}</p>
-          <div style="font-size: 11px; color: #28cd41; font-weight: 600; margin-top: 6px;">Next automatic renewal: {{nextBillingDate}}</div>
+          <h2>Apple One Premier Plan</h2>
+          <p>iCloud+ 2TB, Apple Music Family, Apple TV+, Apple Arcade, Apple Fitness+</p>
+          <div style="font-size: 11px; color: #28cd41; font-weight: 600; margin-top: 6px;">Next automatic renewal: 25 October 2026</div>
         </div>
         <div class="service-price">
-          ₹{{monthlyCost}}
+          ₹365.00
           <span>per month</span>
         </div>
       </div>
