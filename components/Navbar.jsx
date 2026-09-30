@@ -46,22 +46,12 @@ export default function Navbar({
         <div className={styles.viewModeToggle}>
           <button
             type="button"
-            className={`${styles.viewBtn} ${viewMode === 'ironpdf' ? styles.active : ''}`}
-            onClick={() => onChangeViewMode('ironpdf')}
-            title="IronPDF Multi-Page Vector Document Studio"
-          >
-            <FileCheck size={14} />
-            <span>IronPDF</span>
-          </button>
-
-          <button
-            type="button"
-            className={`${styles.viewBtn} ${viewMode === 'document' ? styles.active : ''}`}
+            className={`${styles.viewBtn} ${viewMode === 'document' || viewMode === 'ironpdf' ? styles.active : ''}`}
             onClick={() => onChangeViewMode('document')}
-            title="A4 Printable Document View (210mm x 297mm)"
+            title="PDF & A4 Document Studio (210mm x 297mm)"
           >
             <FileText size={14} />
-            <span>A4 Document</span>
+            <span>Doc / PDF</span>
           </button>
 
           <button

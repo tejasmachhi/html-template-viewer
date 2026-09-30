@@ -29,7 +29,9 @@ export default function DocumentPreview({ htmlContent }) {
 
   const previewSrc = isContentEmpty
     ? `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:0;padding:120px 32px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#86868b;text-align:center;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;min-height:800px;}.icon{width:56px;height:56px;border-radius:14px;background:#f5f5f7;border:1px dashed #d2d2d7;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:24px;color:#0071e3;}h3{margin:0 0 8px 0;font-size:18px;font-weight:600;color:#1d1d1f;}p{margin:0;font-size:14px;line-height:1.5;max-width:340px;color:#86868b;}</style></head><body><div class="icon">&#128196;</div><h3>A4 Document Ready</h3><p>Paste your HTML template code into the editor to preview it formatted as a printable A4 document.</p></body></html>`
-    : htmlContent;
+    : (htmlContent.includes('<html') || htmlContent.includes('<body')
+      ? htmlContent
+      : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>* { box-sizing: border-box; } body { margin: 0; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff; color: #111827; }</style></head><body>${htmlContent}</body></html>`);
 
   return (
     <div className={styles.documentPageWrapper}>

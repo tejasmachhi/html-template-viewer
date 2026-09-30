@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   FileText,
   ZoomIn,
@@ -12,115 +12,125 @@ import {
   Printer,
   Download,
   Upload,
-  Settings,
-  RefreshCw,
   Sliders,
   PanelLeftClose,
   PanelLeft,
-  Maximize2,
-  FileCheck,
-  Sparkles,
   Layers,
-  X
+  X,
+  FileX2,
+  FileCheck
 } from 'lucide-react';
-import {
-  createSampleIronPdfDocument,
-  convertHtmlToPdfBytes
-} from '../utils/ironPdfEngine';
+import { convertHtmlToPdfBytes } from '../utils/ironPdfEngine';
 import styles from '../app/styles/IronPdfViewer.module.scss';
 
 export default function IronPdfViewer({
   htmlContent,
   templateTitle = 'Document Preview'
 }) {
-  // Document state
-  const [pdfBytes, setPdfBytes] = useState(null);
-  const [pdfDoc, setPdfDoc] = useState(null);
-  const [totalPages, setTotalPages] = useState(1);
+  // Navigation & Page State
   const [currentPage, setCurrentPage] = useState(1);
-  const [docName, setDocName] = useState('IronPDF_Contract_Agreement.pdf');
-  const [isLoading, setIsLoading] = useState(true);
-  const [statusMessage, setStatusMessage] = useState('Initializing IronPDF Engine...');
-
-  // Navigation & Zoom state
+  const [totalPages, setTotalPages] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [rotation, setRotation] = useState(0); // 0, 90, 180, 270
-  const [viewLayout, setViewLayout] = useState('single'); // 'single' | 'continuous'
+  const [viewLayout, setViewLayout] = useState('continuous'); // 'single' | 'continuous'
   const [isThumbnailsOpen, setIsThumbnailsOpen] = useState(true);
 
-  // IronPDF Customization Options State
+  // PDF File Upload Mode (Optional for viewing local .pdf files)
+  const [uploadedPdfBytes, setUploadedPdfBytes] = useState(null);
+  const [uploadedDoc, setUploadedDoc] = useState(null);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Customization Options (Watermark & Headers)
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [watermarkText, setWatermarkText] = useState('CONFIDENTIAL');
-  const [showWatermark, setShowWatermark] = useState(true);
+  const [showWatermark, setShowWatermark] = useState(false);
   const [watermarkOpacity, setWatermarkOpacity] = useState(0.12);
   const [watermarkColor, setWatermarkColor] = useState('#0071e3');
   const [showHeader, setShowHeader] = useState(true);
   const [showFooter, setShowFooter] = useState(true);
 
+  // Loading state
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
   // References
-  const mainCanvasRef = useRef(null);
-  const thumbnailCanvasRefs = useRef({});
-  const continuousCanvasRefs = useRef({});
   const fileInputRef = useRef(null);
+  const htmlMeasureIframeRef = useRef(null);
   const viewportAreaRef = useRef(null);
-  const renderTaskRef = useRef(null);
+  const uploadedPdfCanvasRef = useRef(null);
+  const uploadedPdfThumbRefs = useRef({});
+  const uploadedPdfContinuousRefs = useRef({});
 
-  // Initialize with sample IronPDF document
+  // Check if substantive HTML code is provided
+  const hasUserHtml = useMemo(() => {
+    if (!htmlContent) return false;
+    const stripped = htmlContent
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/\s+/g, '')
+      .trim();
+    return stripped.length > 0;
+  }, [htmlContent]);
+
+  // Mode: 'uploaded' if user uploaded a file, otherwise 'html'
+  const mode = uploadedPdfBytes ? 'uploaded' : 'html';
+
+  // Compute document title
+  const docTitle = useMemo(() => {
+    if (uploadedFileName) return uploadedFileName;
+    if (templateTitle && templateTitle !== 'Document Preview') {
+      return `${templateTitle}.pdf`;
+    }
+    return 'Document_Preview.pdf';
+  }, [uploadedFileName, templateTitle]);
+
+  // Measure content height and calculate standard A4 pages
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadInitialDoc() {
-      try {
-        setIsLoading(true);
-        setStatusMessage('Compiling IronPDF Document...');
-        const initialBytes = await createSampleIronPdfDocument('agreement', {
-          watermarkText,
-          showWatermark,
-          watermarkOpacity,
-          watermarkColor,
-          showHeader,
-          showFooter,
-          rotation: 0,
-        });
-
-        if (isMounted) {
-          setPdfBytes(initialBytes);
-          setDocName('IronPDF_Agreement_Specification.pdf');
-        }
-      } catch (err) {
-        console.error('Failed to generate initial IronPDF doc:', err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+    if (mode !== 'html' || !hasUserHtml) {
+      if (!uploadedPdfBytes) setTotalPages(1);
+      return;
     }
 
-    loadInitialDoc();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    const iframe = htmlMeasureIframeRef.current;
+    if (!iframe) return;
 
-  // Load PDF with pdfjs-dist whenever pdfBytes changes
+    const timer = setTimeout(() => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (doc && doc.body) {
+          const scrollH = doc.body.scrollHeight;
+          // Standard A4 printable height at 96 DPI: 1123px (minus 100px margins = ~1020px)
+          const PAGE_H = 1020;
+          const calculated = Math.max(1, Math.ceil(scrollH / PAGE_H));
+          setTotalPages(calculated);
+          if (currentPage > calculated) {
+            setCurrentPage(calculated);
+          }
+        }
+      } catch (e) {
+        setTotalPages(1);
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [htmlContent, hasUserHtml, mode, currentPage, uploadedPdfBytes]);
+
+  // Handle uploaded PDF rendering using PDF.js
   useEffect(() => {
-    if (!pdfBytes) return;
+    if (mode !== 'uploaded' || !uploadedPdfBytes) return;
 
     let isCancelled = false;
 
-    async function parsePdf() {
+    async function loadUploadedPdf() {
       try {
-        setIsLoading(true);
-        setStatusMessage('Rendering Vector PDF Pages...');
-
-        // Dynamically import pdfjs-dist
+        setIsUploading(true);
         const pdfjs = await import('pdfjs-dist/build/pdf.mjs');
-        
-        // Configure worker via reliable CDN matching generic build
         if (!pdfjs.GlobalWorkerOptions.workerSrc) {
           pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version || '4.3.136'}/build/pdf.worker.min.mjs`;
         }
 
         const loadingTask = pdfjs.getDocument({
-          data: pdfBytes.slice(),
+          data: uploadedPdfBytes.slice(),
           cMapUrl: 'https://unpkg.com/pdfjs-dist/cmaps/',
           cMapPacked: true,
         });
@@ -128,108 +138,42 @@ export default function IronPdfViewer({
         const doc = await loadingTask.promise;
         if (isCancelled) return;
 
-        setPdfDoc(doc);
+        setUploadedDoc(doc);
         setTotalPages(doc.numPages);
         setCurrentPage(1);
       } catch (err) {
-        console.warn('PDF.js worker parse warning, retrying direct:', err);
+        console.error('Error loading uploaded PDF:', err);
       } finally {
-        if (!isCancelled) setIsLoading(false);
+        if (!isCancelled) setIsUploading(false);
       }
     }
 
-    parsePdf();
+    loadUploadedPdf();
 
     return () => {
       isCancelled = true;
     };
-  }, [pdfBytes]);
+  }, [mode, uploadedPdfBytes]);
 
-  // Render main page canvas (Single Page View)
+  // Render uploaded PDF canvases
   useEffect(() => {
-    if (!pdfDoc || viewLayout !== 'single') return;
+    if (!uploadedDoc || mode !== 'uploaded') return;
 
     let isCancelled = false;
 
-    async function renderSinglePage() {
-      try {
-        const page = await pdfDoc.getPage(currentPage);
-        if (isCancelled) return;
+    async function renderUploadedCanvases() {
+      const dpr = window.devicePixelRatio || 1;
+      const scale = (zoomLevel / 100) * 1.4;
 
-        const canvas = mainCanvasRef.current;
-        if (!canvas) return;
-
-        // Cancel previous render task if any
-        if (renderTaskRef.current) {
-          try {
-            renderTaskRef.current.cancel();
-          } catch (e) {
-            // Safe ignore
-          }
-        }
-
-        const dpr = window.devicePixelRatio || 1;
-        const totalRotation = (page.rotate + rotation) % 360;
-        const scale = (zoomLevel / 100) * 1.5; // Baseline high-DPI scaling
-
-        const viewport = page.getViewport({ scale: scale * dpr, rotation: totalRotation });
-        const cssViewport = page.getViewport({ scale: scale, rotation: totalRotation });
-
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
-        canvas.style.width = `${Math.floor(cssViewport.width)}px`;
-        canvas.style.height = `${Math.floor(cssViewport.height)}px`;
-
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const renderContext = {
-          canvasContext: ctx,
-          viewport: viewport,
-        };
-
-        const renderTask = page.render(renderContext);
-        renderTaskRef.current = renderTask;
-        await renderTask.promise;
-      } catch (err) {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error('Error rendering page:', err);
-        }
-      }
-    }
-
-    renderSinglePage();
-
-    return () => {
-      isCancelled = true;
-      if (renderTaskRef.current) {
+      if (viewLayout === 'single') {
         try {
-          renderTaskRef.current.cancel();
-        } catch (e) {}
-      }
-    };
-  }, [pdfDoc, currentPage, zoomLevel, rotation, viewLayout]);
+          const page = await uploadedDoc.getPage(currentPage);
+          const canvas = uploadedPdfCanvasRef.current;
+          if (!canvas || isCancelled) return;
 
-  // Render continuous scroll pages
-  useEffect(() => {
-    if (!pdfDoc || viewLayout !== 'continuous') return;
-
-    let isCancelled = false;
-
-    async function renderAllContinuousPages() {
-      for (let pNum = 1; pNum <= pdfDoc.numPages; pNum++) {
-        if (isCancelled) break;
-        try {
-          const page = await pdfDoc.getPage(pNum);
-          const canvas = continuousCanvasRefs.current[pNum];
-          if (!canvas) continue;
-
-          const dpr = window.devicePixelRatio || 1;
-          const totalRotation = (page.rotate + rotation) % 360;
-          const scale = (zoomLevel / 100) * 1.5;
-
-          const viewport = page.getViewport({ scale: scale * dpr, rotation: totalRotation });
-          const cssViewport = page.getViewport({ scale: scale, rotation: totalRotation });
+          const totalRot = (page.rotate + rotation) % 360;
+          const viewport = page.getViewport({ scale: scale * dpr, rotation: totalRot });
+          const cssViewport = page.getViewport({ scale: scale, rotation: totalRot });
 
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
@@ -243,217 +187,276 @@ export default function IronPdfViewer({
             canvasContext: ctx,
             viewport: viewport,
           }).promise;
-        } catch (e) {
-          // ignore
+        } catch (e) {}
+      } else {
+        // Continuous layout
+        for (let pNum = 1; pNum <= uploadedDoc.numPages; pNum++) {
+          if (isCancelled) break;
+          try {
+            const page = await uploadedDoc.getPage(pNum);
+            const canvas = uploadedPdfContinuousRefs.current[pNum];
+            if (!canvas) continue;
+
+            const totalRot = (page.rotate + rotation) % 360;
+            const viewport = page.getViewport({ scale: scale * dpr, rotation: totalRot });
+            const cssViewport = page.getViewport({ scale: scale, rotation: totalRot });
+
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+            canvas.style.width = `${Math.floor(cssViewport.width)}px`;
+            canvas.style.height = `${Math.floor(cssViewport.height)}px`;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            await page.render({
+              canvasContext: ctx,
+              viewport: viewport,
+            }).promise;
+          } catch (e) {}
+        }
+      }
+
+      // Render thumbnails
+      if (isThumbnailsOpen) {
+        for (let pNum = 1; pNum <= uploadedDoc.numPages; pNum++) {
+          if (isCancelled) break;
+          try {
+            const page = await uploadedDoc.getPage(pNum);
+            const canvas = uploadedPdfThumbRefs.current[pNum];
+            if (!canvas) continue;
+
+            const totalRot = (page.rotate + rotation) % 360;
+            const viewport = page.getViewport({ scale: 0.28 * dpr, rotation: totalRot });
+
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            await page.render({
+              canvasContext: ctx,
+              viewport: viewport,
+            }).promise;
+          } catch (e) {}
         }
       }
     }
 
-    renderAllContinuousPages();
+    renderUploadedCanvases();
 
     return () => {
       isCancelled = true;
     };
-  }, [pdfDoc, zoomLevel, rotation, viewLayout]);
+  }, [uploadedDoc, mode, currentPage, zoomLevel, rotation, viewLayout, isThumbnailsOpen]);
 
-  // Render Thumbnails in Sidebar
-  useEffect(() => {
-    if (!pdfDoc || !isThumbnailsOpen) return;
+  // Page Jump Action
+  const handleJumpToPage = (pageNum) => {
+    const p = Math.max(1, Math.min(pageNum, totalPages));
+    setCurrentPage(p);
 
-    let isCancelled = false;
-
-    async function renderThumbnails() {
-      for (let pNum = 1; pNum <= pdfDoc.numPages; pNum++) {
-        if (isCancelled) break;
-        try {
-          const page = await pdfDoc.getPage(pNum);
-          const canvas = thumbnailCanvasRefs.current[pNum];
-          if (!canvas) continue;
-
-          const dpr = window.devicePixelRatio || 1;
-          const thumbScale = 0.28 * dpr;
-          const totalRotation = (page.rotate + rotation) % 360;
-          const viewport = page.getViewport({ scale: thumbScale, rotation: totalRotation });
-
-          canvas.width = Math.floor(viewport.width);
-          canvas.height = Math.floor(viewport.height);
-
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-          await page.render({
-            canvasContext: ctx,
-            viewport: viewport,
-          }).promise;
-        } catch (e) {
-          // Thumbnail error fallback
-        }
+    if (viewLayout === 'continuous') {
+      const pageEl = document.getElementById(`doc-page-${p}`);
+      if (pageEl) {
+        pageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
+  };
 
-    renderThumbnails();
+  // Zoom Controls
+  const handleZoomIn = () => setZoomLevel((z) => Math.min(z + 15, 200));
+  const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 15, 50));
+  const handleFitWidth = () => setZoomLevel(105);
+  const handleFitPage = () => setZoomLevel(80);
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [pdfDoc, isThumbnailsOpen, rotation]);
+  // Rotation Controls
+  const handleRotateCw = () => setRotation((r) => (r + 90) % 360);
+  const handleRotateCcw = () => setRotation((r) => (r - 90 + 360) % 360);
 
-  // Action: Convert Current Live HTML Template to PDF
-  const handleCompileCurrentHtml = useCallback(async () => {
-    if (!htmlContent) return;
-    try {
-      setIsLoading(true);
-      setStatusMessage('Converting HTML Template to IronPDF...');
-      
-      const newPdfBytes = await convertHtmlToPdfBytes(htmlContent, {
-        documentTitle: templateTitle || 'Template Document',
-        showWatermark,
-        watermarkText,
-        watermarkOpacity,
-        watermarkColor,
-        showHeader,
-        showFooter,
-        rotation,
-      });
-
-      setPdfBytes(newPdfBytes);
-      setDocName(`${(templateTitle || 'Document').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`);
-    } catch (err) {
-      console.error('Failed to convert HTML to PDF:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [htmlContent, templateTitle, showWatermark, watermarkText, watermarkOpacity, watermarkColor, showHeader, showFooter, rotation]);
-
-  // Action: Apply IronPDF Options & Re-stamp
-  const handleApplyOptions = useCallback(async () => {
-    setIsOptionsOpen(false);
-    await handleCompileCurrentHtml();
-  }, [handleCompileCurrentHtml]);
-
-  // Action: Upload Any PDF File
+  // File Upload Action
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      alert('Please select a valid PDF document.');
+      alert('Please upload a valid .pdf file.');
       return;
     }
 
-    setIsLoading(true);
-    setStatusMessage(`Opening ${file.name}...`);
-
+    setUploadedFileName(file.name);
     const reader = new FileReader();
     reader.onload = (event) => {
-      const arrayBuffer = event.target.result;
-      setPdfBytes(new Uint8Array(arrayBuffer));
-      setDocName(file.name);
+      setUploadedPdfBytes(new Uint8Array(event.target.result));
       setRotation(0);
-      setIsLoading(false);
     };
     reader.readAsArrayBuffer(file);
   };
 
-  // Action: Rotate 90 degrees Clockwise
-  const handleRotateCw = () => {
-    setRotation((prev) => (prev + 90) % 360);
+  // Switch back from uploaded PDF to HTML Source
+  const handleClearUploadedFile = () => {
+    setUploadedPdfBytes(null);
+    setUploadedDoc(null);
+    setUploadedFileName('');
+    setCurrentPage(1);
   };
 
-  // Action: Rotate 90 degrees Counter-Clockwise
-  const handleRotateCcw = () => {
-    setRotation((prev) => (prev - 90 + 360) % 360);
-  };
+  // Print Action
+  const handlePrint = () => {
+    if (mode === 'html') {
+      const printIframe = document.createElement('iframe');
+      printIframe.style.position = 'fixed';
+      printIframe.style.right = '0';
+      printIframe.style.bottom = '0';
+      printIframe.style.width = '0';
+      printIframe.style.height = '0';
+      printIframe.style.border = '0';
+      document.body.appendChild(printIframe);
 
-  // Action: Zoom In
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 15, 300));
-  };
+      const doc = printIframe.contentWindow.document;
+      doc.open();
+      doc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>${templateTitle || 'Print Document'}</title>
+            <style>
+              @page { size: A4 portrait; margin: 15mm; }
+              body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #111; }
+            </style>
+          </head>
+          <body>${htmlContent}</body>
+        </html>
+      `);
+      doc.close();
 
-  // Action: Zoom Out
-  const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 15, 40));
-  };
-
-  // Action: Fit Width
-  const handleFitWidth = () => {
-    setZoomLevel(110);
-  };
-
-  // Action: Fit Page
-  const handleFitPage = () => {
-    setZoomLevel(85);
-  };
-
-  // Action: Jump to Page
-  const handleJumpToPage = (pageNum) => {
-    const p = Math.max(1, Math.min(pageNum, totalPages));
-    setCurrentPage(p);
-  };
-
-  // Action: Download PDF
-  const handleDownloadPdf = () => {
-    if (!pdfBytes) return;
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = docName || 'IronPDF_Export.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  // Action: Print PDF
-  const handlePrintPdf = () => {
-    if (!pdfBytes) return;
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const printWindow = window.open(url, '_blank');
-    if (printWindow) {
-      printWindow.addEventListener('load', () => {
-        printWindow.print();
-      });
+      setTimeout(() => {
+        printIframe.contentWindow.focus();
+        printIframe.contentWindow.print();
+        setTimeout(() => document.body.removeChild(printIframe), 1000);
+      }, 400);
+    } else if (uploadedPdfBytes) {
+      const blob = new Blob([uploadedPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const printWin = window.open(url, '_blank');
+      if (printWin) {
+        printWin.addEventListener('load', () => printWin.print());
+      }
     }
   };
 
+  // Download PDF Action
+  const handleDownloadPdf = async () => {
+    if (mode === 'html') {
+      try {
+        setIsGeneratingPdf(true);
+        const bytes = await convertHtmlToPdfBytes(htmlContent, {
+          documentTitle: templateTitle || 'Document',
+          showWatermark,
+          watermarkText,
+          watermarkOpacity,
+          watermarkColor,
+          showHeader,
+          showFooter,
+          rotation,
+        });
+
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = docTitle;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('PDF Download Error:', err);
+      } finally {
+        setIsGeneratingPdf(false);
+      }
+    } else if (uploadedPdfBytes) {
+      const blob = new Blob([uploadedPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = docTitle;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // Prepared HTML document source
+  const safeHtmlSrcDoc = useMemo(() => {
+    if (!hasUserHtml) return '';
+    return htmlContent.includes('<html') || htmlContent.includes('<body')
+      ? htmlContent
+      : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>* { box-sizing: border-box; } body { margin: 0; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #ffffff; color: #111827; }</style></head><body>${htmlContent}</body></html>`;
+  }, [htmlContent, hasUserHtml]);
+
   return (
     <div className={styles.pdfViewerRoot}>
-      {/* IronPDF Studio Top Navigation Toolbar */}
+      {/* Offscreen frame for measuring content height */}
+      {hasUserHtml && (
+        <iframe
+          ref={htmlMeasureIframeRef}
+          style={{ position: 'fixed', left: '-9999px', top: '0', width: '794px', height: '1123px', border: 'none' }}
+          srcDoc={safeHtmlSrcDoc}
+          title="Measure Frame"
+        />
+      )}
+
+      {/* Top Studio Toolbar */}
       <header className={styles.studioToolbar}>
-        {/* Left Section: Thumbnail Toggle & Title */}
+        {/* Left: Thumbnail Drawer Toggle & Title */}
         <div className={styles.leftControls}>
           <button
             type="button"
             className={`${styles.sidebarToggleBtn} ${isThumbnailsOpen ? styles.active : ''}`}
             onClick={() => setIsThumbnailsOpen(!isThumbnailsOpen)}
-            title={isThumbnailsOpen ? 'Collapse Page Thumbnails' : 'Expand Page Thumbnails'}
+            title={isThumbnailsOpen ? 'Hide Thumbnails' : 'Show Thumbnails'}
           >
-            {isThumbnailsOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
+            {isThumbnailsOpen ? <PanelLeftClose size={15} /> : <PanelLeft size={15} />}
           </button>
 
           <div className={styles.docTitleArea}>
-            <span className={styles.docTitle} title={docName}>{docName}</span>
+            <span className={styles.docTitle} title={docTitle}>
+              {docTitle}
+            </span>
             <span className={styles.engineBadge}>
               <FileCheck size={11} />
-              IronPDF
+              {mode === 'uploaded' ? 'PDF File' : 'HTML Live'}
             </span>
           </div>
+
+          {mode === 'uploaded' && (
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={handleClearUploadedFile}
+              title="Return to HTML Editor template"
+              style={{ fontSize: '11px', width: 'auto', padding: '0 6px', color: '#0071e3' }}
+            >
+              Back to HTML
+            </button>
+          )}
         </div>
 
-        {/* Center Section: Page Navigation, Zoom, Rotate, Layout */}
+        {/* Center: Pagination, Zoom, Rotation, Layout */}
         <div className={styles.centerControls}>
-          {/* Page Navigation */}
+          {/* Page Jump */}
           <div className={styles.controlGroup}>
             <button
               type="button"
               className={styles.iconBtn}
               onClick={() => handleJumpToPage(currentPage - 1)}
-              disabled={currentPage <= 1}
+              disabled={currentPage <= 1 || (!hasUserHtml && mode === 'html')}
               title="Previous Page"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={15} />
             </button>
 
             <div className={styles.pageIndicator}>
@@ -463,6 +466,7 @@ export default function IronPdfViewer({
                 max={totalPages}
                 value={currentPage}
                 onChange={(e) => handleJumpToPage(parseInt(e.target.value) || 1)}
+                disabled={!hasUserHtml && mode === 'html'}
               />
               <span className={styles.totalPages}>/ {totalPages}</span>
             </div>
@@ -471,10 +475,10 @@ export default function IronPdfViewer({
               type="button"
               className={styles.iconBtn}
               onClick={() => handleJumpToPage(currentPage + 1)}
-              disabled={currentPage >= totalPages}
+              disabled={currentPage >= totalPages || (!hasUserHtml && mode === 'html')}
               title="Next Page"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={15} />
             </button>
           </div>
 
@@ -484,10 +488,10 @@ export default function IronPdfViewer({
               type="button"
               className={styles.iconBtn}
               onClick={handleZoomOut}
-              disabled={zoomLevel <= 40}
+              disabled={zoomLevel <= 50}
               title="Zoom Out (-15%)"
             >
-              <ZoomOut size={14} />
+              <ZoomOut size={13} />
             </button>
 
             <select
@@ -505,7 +509,6 @@ export default function IronPdfViewer({
               <option value="100">100%</option>
               <option value="125">125%</option>
               <option value="150">150%</option>
-              <option value="200">200%</option>
               <option value="fit-width">Fit Width</option>
               <option value="fit-page">Fit Page</option>
             </select>
@@ -514,14 +517,14 @@ export default function IronPdfViewer({
               type="button"
               className={styles.iconBtn}
               onClick={handleZoomIn}
-              disabled={zoomLevel >= 300}
+              disabled={zoomLevel >= 200}
               title="Zoom In (+15%)"
             >
-              <ZoomIn size={14} />
+              <ZoomIn size={13} />
             </button>
           </div>
 
-          {/* Page Rotation Controls */}
+          {/* Rotation */}
           <div className={styles.controlGroup}>
             <button
               type="button"
@@ -529,7 +532,7 @@ export default function IronPdfViewer({
               onClick={handleRotateCcw}
               title="Rotate 90° Counter-Clockwise"
             >
-              <RotateCcw size={14} />
+              <RotateCcw size={13} />
             </button>
 
             <button
@@ -538,11 +541,11 @@ export default function IronPdfViewer({
               onClick={handleRotateCw}
               title="Rotate 90° Clockwise"
             >
-              <RotateCw size={14} />
+              <RotateCw size={13} />
             </button>
           </div>
 
-          {/* Layout Mode (Single vs Continuous) */}
+          {/* Layout Mode */}
           <div className={styles.controlGroup}>
             <button
               type="button"
@@ -550,7 +553,7 @@ export default function IronPdfViewer({
               onClick={() => setViewLayout('single')}
               title="Single Page Mode"
             >
-              <FileText size={14} />
+              <FileText size={13} />
             </button>
 
             <button
@@ -559,28 +562,18 @@ export default function IronPdfViewer({
               onClick={() => setViewLayout('continuous')}
               title="Continuous Scroll Mode"
             >
-              <Layers size={14} />
+              <Layers size={13} />
             </button>
           </div>
         </div>
 
-        {/* Right Section: Actions (HTML Sync, Upload, Options, Print, Download) */}
+        {/* Right: Actions */}
         <div className={styles.rightControls}>
-          <button
-            type="button"
-            className={`${styles.actionBtn} ${styles.accent}`}
-            onClick={handleCompileCurrentHtml}
-            title="Compile & Render Current HTML Editor Template into IronPDF"
-          >
-            <Sparkles size={13} />
-            <span>Render HTML</span>
-          </button>
-
           <button
             type="button"
             className={styles.actionBtn}
             onClick={() => fileInputRef.current?.click()}
-            title="Open & View any local PDF from your computer"
+            title="Open and preview any local PDF file"
           >
             <Upload size={13} />
             <span>Open PDF</span>
@@ -598,7 +591,7 @@ export default function IronPdfViewer({
             type="button"
             className={`${styles.actionBtn} ${isOptionsOpen ? styles.primary : ''}`}
             onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-            title="IronPDF Watermark & Header/Footer Settings"
+            title="Document Watermark & Header Settings"
           >
             <Sliders size={13} />
           </button>
@@ -606,8 +599,9 @@ export default function IronPdfViewer({
           <button
             type="button"
             className={styles.actionBtn}
-            onClick={handlePrintPdf}
-            title="Print PDF Document"
+            onClick={handlePrint}
+            disabled={!hasUserHtml && mode === 'html'}
+            title="Print Document"
           >
             <Printer size={13} />
           </button>
@@ -616,7 +610,8 @@ export default function IronPdfViewer({
             type="button"
             className={`${styles.actionBtn} ${styles.primary}`}
             onClick={handleDownloadPdf}
-            title="Download PDF file"
+            disabled={!hasUserHtml && mode === 'html'}
+            title="Save as PDF Document"
           >
             <Download size={13} />
             <span>Save PDF</span>
@@ -626,77 +621,315 @@ export default function IronPdfViewer({
 
       {/* Main Workspace Stage */}
       <div className={styles.mainStage}>
-        {/* Left Page Thumbnails Sidebar */}
-        <aside className={`${styles.thumbnailsSidebar} ${!isThumbnailsOpen ? styles.closed : ''}`}>
-          <div className={styles.sidebarHeader}>
-            <span>Pages ({totalPages})</span>
-          </div>
+        {/* Left Thumbnails Sidebar */}
+        {hasUserHtml || mode === 'uploaded' ? (
+          <aside className={`${styles.thumbnailsSidebar} ${!isThumbnailsOpen ? styles.closed : ''}`}>
+            <div className={styles.sidebarHeader}>
+              <span>Pages ({totalPages})</span>
+            </div>
 
-          <div className={styles.thumbnailsList}>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <div
-                key={`thumb-${pageNum}`}
-                className={`${styles.thumbnailCard} ${currentPage === pageNum ? styles.active : ''}`}
-                onClick={() => handleJumpToPage(pageNum)}
-              >
-                <div className={styles.thumbnailPreviewBox}>
-                  <canvas
-                    ref={(el) => {
-                      if (el) thumbnailCanvasRefs.current[pageNum] = el;
-                    }}
-                  />
+            <div className={styles.thumbnailsList}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <div
+                  key={`thumb-${pageNum}`}
+                  className={`${styles.thumbnailCard} ${currentPage === pageNum ? styles.active : ''}`}
+                  onClick={() => handleJumpToPage(pageNum)}
+                >
+                  <div className={styles.thumbnailPreviewBox}>
+                    {mode === 'html' ? (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          background: '#ffffff',
+                        }}
+                      >
+                        <iframe
+                          srcDoc={safeHtmlSrcDoc}
+                          style={{
+                            width: '794px',
+                            height: `${Math.max(1123, totalPages * 1020)}px`,
+                            border: 'none',
+                            transform: `scale(0.18) translateY(-${(pageNum - 1) * 1020}px)`,
+                            transformOrigin: 'top left',
+                            pointerEvents: 'none',
+                          }}
+                          title={`Thumb Frame ${pageNum}`}
+                        />
+                      </div>
+                    ) : (
+                      <canvas
+                        ref={(el) => {
+                          if (el) uploadedPdfThumbRefs.current[pageNum] = el;
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span className={styles.thumbnailBadge}>Page {pageNum}</span>
                 </div>
-                <span className={styles.thumbnailBadge}>Page {pageNum}</span>
-              </div>
-            ))}
-          </div>
-        </aside>
+              ))}
+            </div>
+          </aside>
+        ) : null}
 
-        {/* Center / Right Canvas Viewport Area */}
+        {/* Viewport Area */}
         <main className={styles.viewportArea} ref={viewportAreaRef}>
-          <div className={styles.canvasStage}>
-            {viewLayout === 'single' ? (
-              // Single Page Mode
-              <div className={styles.pageContainer}>
-                <canvas ref={mainCanvasRef} />
-                <span className={styles.pageNumberBadge}>
-                  Page {currentPage} of {totalPages}
-                </span>
-              </div>
-            ) : (
-              // Continuous Vertical Scroll Mode
-              Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                <div key={`page-${pageNum}`} className={styles.pageContainer}>
-                  <canvas
-                    ref={(el) => {
-                      if (el) continuousCanvasRefs.current[pageNum] = el;
-                    }}
-                  />
-                  <span className={styles.pageNumberBadge}>
-                    Page {pageNum} of {totalPages}
-                  </span>
+          {mode === 'html' && !hasUserHtml ? (
+            /* ============================================================
+               NO DATA FOUND STATE (When no HTML is in editor)
+               ============================================================ */
+            <div className={styles.noDataContainer}>
+              <div className={styles.noDataCard}>
+                <div className={styles.noDataIcon}>
+                  <FileX2 size={36} />
                 </div>
-              ))
-            )}
-          </div>
+                <h3>No Document Data Found</h3>
+                <p>
+                  Please paste or enter your HTML code in the editor on the left to render your live document preview.
+                </p>
+                <div className={styles.noDataBadge}>
+                  Waiting for HTML Template Code
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* ============================================================
+               LIVE DOCUMENT VIEW (Multi-Page A4 / Uploaded PDF)
+               ============================================================ */
+            <div
+              className={styles.canvasStage}
+              style={{
+                transform: `scale(${zoomLevel / 100}) rotate(${rotation}deg)`,
+                transformOrigin: 'top center',
+              }}
+            >
+              {mode === 'html' ? (
+                // HTML Multi-Page A4 Render
+                viewLayout === 'single' ? (
+                  // Single Page Mode
+                  <div className={styles.pageContainer} style={{ width: '794px', height: '1123px' }}>
+                    {showHeader && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: '42px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0 32px',
+                          borderBottom: '1px solid #e5e7eb',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: '#6b7280',
+                          background: '#ffffff',
+                          zIndex: 3,
+                        }}
+                      >
+                        <span>{templateTitle || 'Document Preview'}</span>
+                        <span style={{ color: '#0071e3' }}>DOCUMENT VIEW</span>
+                      </div>
+                    )}
+
+                    {showWatermark && (
+                      <div className={styles.watermarkOverlay}>
+                        <span style={{ color: watermarkColor, opacity: watermarkOpacity }}>
+                          {watermarkText}
+                        </span>
+                      </div>
+                    )}
+
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: showHeader ? '42px' : 0,
+                        bottom: showFooter ? '38px' : 0,
+                        left: 0,
+                        right: 0,
+                        overflow: 'hidden',
+                        background: '#ffffff',
+                      }}
+                    >
+                      <iframe
+                        srcDoc={safeHtmlSrcDoc}
+                        style={{
+                          width: '794px',
+                          height: `${Math.max(1123, totalPages * 1020)}px`,
+                          border: 'none',
+                          transform: `translateY(-${(currentPage - 1) * 1020}px)`,
+                          transition: 'transform 0.15s ease',
+                        }}
+                        title="Single Page Document"
+                      />
+                    </div>
+
+                    {showFooter && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: '38px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0 32px',
+                          borderTop: '1px solid #e5e7eb',
+                          fontSize: '11px',
+                          color: '#9ca3af',
+                          background: '#ffffff',
+                          zIndex: 3,
+                        }}
+                      >
+                        <span>Print-Ready A4 Document</span>
+                        <span style={{ fontWeight: 600, color: '#4b5563' }}>
+                          Page {currentPage} of {totalPages}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Continuous Vertical Scroll Mode
+                  Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <div
+                      key={`page-${pageNum}`}
+                      id={`doc-page-${pageNum}`}
+                      className={styles.pageContainer}
+                      style={{ width: '794px', height: '1123px', position: 'relative', marginBottom: '32px' }}
+                    >
+                      {showHeader && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '42px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0 32px',
+                            borderBottom: '1px solid #e5e7eb',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: '#6b7280',
+                            background: '#ffffff',
+                            zIndex: 3,
+                          }}
+                        >
+                          <span>{templateTitle || 'Document Preview'}</span>
+                          <span style={{ color: '#0071e3' }}>DOCUMENT VIEW</span>
+                        </div>
+                      )}
+
+                      {showWatermark && (
+                        <div className={styles.watermarkOverlay}>
+                          <span style={{ color: watermarkColor, opacity: watermarkOpacity }}>
+                            {watermarkText}
+                          </span>
+                        </div>
+                      )}
+
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: showHeader ? '42px' : 0,
+                          bottom: showFooter ? '38px' : 0,
+                          left: 0,
+                          right: 0,
+                          overflow: 'hidden',
+                          background: '#ffffff',
+                        }}
+                      >
+                        <iframe
+                          srcDoc={safeHtmlSrcDoc}
+                          style={{
+                            width: '794px',
+                            height: `${Math.max(1123, totalPages * 1020)}px`,
+                            border: 'none',
+                            transform: `translateY(-${(pageNum - 1) * 1020}px)`,
+                          }}
+                          title={`Page Frame ${pageNum}`}
+                        />
+                      </div>
+
+                      {showFooter && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: '38px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0 32px',
+                            borderTop: '1px solid #e5e7eb',
+                            fontSize: '11px',
+                            color: '#9ca3af',
+                            background: '#ffffff',
+                            zIndex: 3,
+                          }}
+                        >
+                          <span>Print-Ready A4 Document</span>
+                          <span style={{ fontWeight: 600, color: '#4b5563' }}>
+                            Page {pageNum} of {totalPages}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )
+              ) : (
+                // Uploaded PDF Canvas Render
+                viewLayout === 'single' ? (
+                  <div className={styles.pageContainer}>
+                    <canvas ref={uploadedPdfCanvasRef} />
+                    <span className={styles.pageNumberBadge}>
+                      Page {currentPage} of {totalPages}
+                    </span>
+                  </div>
+                ) : (
+                  Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <div key={`upload-page-${pageNum}`} id={`doc-page-${pageNum}`} className={styles.pageContainer}>
+                      <canvas
+                        ref={(el) => {
+                          if (el) uploadedPdfContinuousRefs.current[pageNum] = el;
+                        }}
+                      />
+                      <span className={styles.pageNumberBadge}>
+                        Page {pageNum} of {totalPages}
+                      </span>
+                    </div>
+                  ))
+                )
+              )}
+            </div>
+          )}
         </main>
       </div>
 
       {/* Loading Overlay */}
-      {isLoading && (
+      {(isGeneratingPdf || isUploading) && (
         <div className={styles.loadingOverlay}>
           <div className={styles.spinner} />
-          <span>{statusMessage}</span>
+          <span>{isGeneratingPdf ? 'Compiling PDF Document...' : 'Loading PDF File...'}</span>
         </div>
       )}
 
-      {/* IronPDF Studio Options Popover */}
+      {/* Watermark & Settings Drawer */}
       {isOptionsOpen && (
         <div className={styles.optionsDrawer}>
           <div className={styles.optionsHeader}>
             <h4>
               <Sliders size={15} />
-              IronPDF Engine Controls
+              Document View Options
             </h4>
             <button
               type="button"
@@ -713,7 +946,7 @@ export default function IronPdfViewer({
               checked={showWatermark}
               onChange={(e) => setShowWatermark(e.target.checked)}
             />
-            <span>Stamp IronPDF Watermark</span>
+            <span>Show Watermark</span>
           </label>
 
           {showWatermark && (
@@ -734,7 +967,7 @@ export default function IronPdfViewer({
                   <input
                     type="range"
                     min="0.04"
-                    max="0.35"
+                    max="0.40"
                     step="0.02"
                     value={watermarkOpacity}
                     onChange={(e) => setWatermarkOpacity(parseFloat(e.target.value))}
@@ -751,7 +984,7 @@ export default function IronPdfViewer({
               checked={showHeader}
               onChange={(e) => setShowHeader(e.target.checked)}
             />
-            <span>Top Header Rule &amp; Document Name</span>
+            <span>Show Top Header Rule</span>
           </label>
 
           <label className={styles.checkboxOption}>
@@ -760,16 +993,16 @@ export default function IronPdfViewer({
               checked={showFooter}
               onChange={(e) => setShowFooter(e.target.checked)}
             />
-            <span>Bottom Footer with "Page X of Y"</span>
+            <span>Show Bottom Footer with Page Numbers</span>
           </label>
 
           <button
             type="button"
             className={`${styles.actionBtn} ${styles.primary}`}
             style={{ width: '100%', justifyContent: 'center', marginTop: '6px' }}
-            onClick={handleApplyOptions}
+            onClick={() => setIsOptionsOpen(false)}
           >
-            Apply &amp; Re-render PDF
+            Done
           </button>
         </div>
       )}

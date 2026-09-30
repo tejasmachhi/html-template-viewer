@@ -59,7 +59,7 @@ export default function PreviewContainer({
 
   const modeInfo = getModeInfo();
 
-  if (viewMode === 'ironpdf') {
+  if (viewMode === 'document' || viewMode === 'ironpdf') {
     return (
       <div className={styles.previewContainer} style={{ padding: 0 }}>
         <IronPdfViewer
