@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import EmailPreview from './EmailPreview';
 import DocumentPreview from './DocumentPreview';
 import MobilePreview from './MobilePreview';
+import IronPdfViewer from './IronPdfViewer';
 import styles from '../app/styles/Preview.module.scss';
-import { Mail, FileText, Smartphone, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Mail, FileText, Smartphone, ZoomIn, ZoomOut, RotateCcw, FileCheck } from 'lucide-react';
 
 export default function PreviewContainer({
   viewMode,
-  renderedHtml
+  renderedHtml,
+  templateTitle = 'Document Preview'
 }) {
   const [zoomLevel, setZoomLevel] = useState(100);
 
@@ -27,6 +29,12 @@ export default function PreviewContainer({
 
   const getModeInfo = () => {
     switch (viewMode) {
+      case 'ironpdf':
+        return {
+          icon: <FileCheck size={14} color="#0071e3" />,
+          label: 'IronPDF Multi-Page Studio',
+          dimensions: 'ISO A4 (210 × 297mm) Vector PDF'
+        };
       case 'document':
         return {
           icon: <FileText size={14} color="#10b981" />,
@@ -50,6 +58,17 @@ export default function PreviewContainer({
   };
 
   const modeInfo = getModeInfo();
+
+  if (viewMode === 'ironpdf') {
+    return (
+      <div className={styles.previewContainer} style={{ padding: 0 }}>
+        <IronPdfViewer
+          htmlContent={renderedHtml}
+          templateTitle={templateTitle}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.previewContainer}>

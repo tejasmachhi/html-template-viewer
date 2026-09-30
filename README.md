@@ -6,7 +6,17 @@ A modern, fast, and interactive Next.js application for designing, testing, and 
 
 ## ✨ Features
 
-- **Multi-Device & Print Previews**:
+- **IronPDF Multi-Page Document Studio**:
+  - 👁️ **Interactive Multi-Page PDF Viewer**: High-DPI canvas rendering using Mozilla PDF.js & PDF-Lib.
+  - 📑 **Collapsible Page Thumbnails Sidebar**: Live visual miniature thumbnails for every page in the document with one-click page navigation.
+  - 🔍 **Interactive Zoom Controls**: Step-by-step zoom (+15% / -15%), custom presets (50%, 75%, 100%, 125%, 150%, 200%), "Fit Width", and "Fit Page".
+  - 🔄 **Page Rotation**: 90° Clockwise and Counter-Clockwise page rotation on the fly.
+  - 📜 **Layout Modes**: Single-Page focused view or Continuous Vertical Scroll mode.
+  - ⚡ **HTML → IronPDF Live Compilation**: Convert the live HTML template + dynamic JSON data into an official multi-page PDF with custom headers and footers ("Page X of Y").
+  - 🛡️ **IronPDF Security & Watermarking**: Add dynamic diagonal watermarks ("CONFIDENTIAL", "DRAFT", or custom text) with opacity and color controls.
+  - 📂 **Local PDF File Uploader**: Open and inspect any PDF file from your disk directly inside the viewer.
+  - 🖨️ **Print & Download**: Instant 1-click clean printing or `.pdf` file download.
+- **Multi-Device & Email Previews**:
   - 📧 **Email Client Preview**: Test responsive newsletter and transactional email designs.
   - 📄 **A4 Document Preview**: Pixel-perfect view simulated for standard printable paper formats (invoices, receipts, certificates, letters).
   - 📱 **Mobile Device Preview**: Interactive mobile viewport with realistic device bezel framing.

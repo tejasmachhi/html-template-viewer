@@ -10,7 +10,8 @@ import {
   Layers,
   Send,
   Sun,
-  Moon
+  Moon,
+  FileCheck
 } from 'lucide-react';
 import styles from '../app/styles/Navbar.module.scss';
 
@@ -45,12 +46,12 @@ export default function Navbar({
         <div className={styles.viewModeToggle}>
           <button
             type="button"
-            className={`${styles.viewBtn} ${viewMode === 'email' ? styles.active : ''}`}
-            onClick={() => onChangeViewMode('email')}
-            title="Email Client View (600-640px centered)"
+            className={`${styles.viewBtn} ${viewMode === 'ironpdf' ? styles.active : ''}`}
+            onClick={() => onChangeViewMode('ironpdf')}
+            title="IronPDF Multi-Page Vector Document Studio"
           >
-            <Mail size={14} />
-            <span>Email</span>
+            <FileCheck size={14} />
+            <span>IronPDF</span>
           </button>
 
           <button
@@ -61,6 +62,16 @@ export default function Navbar({
           >
             <FileText size={14} />
             <span>A4 Document</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.viewBtn} ${viewMode === 'email' ? styles.active : ''}`}
+            onClick={() => onChangeViewMode('email')}
+            title="Email Client View (600-640px centered)"
+          >
+            <Mail size={14} />
+            <span>Email</span>
           </button>
 
           <button

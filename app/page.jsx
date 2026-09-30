@@ -179,6 +179,7 @@ export default function TemplateLabPage() {
           <PreviewContainer
             viewMode={viewMode}
             renderedHtml={renderedHtml}
+            templateTitle={templateTitle}
           />
         </section>
       </div>
