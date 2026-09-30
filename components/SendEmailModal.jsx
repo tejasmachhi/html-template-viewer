@@ -28,6 +28,13 @@ export default function SendEmailModal({
   const [deliveryResult, setDeliveryResult] = useState(null);
   const [providerConfig, setProviderConfig] = useState({ configured: false, provider: 'None' });
 
+  // Inline SMTP Setup State
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [smtpEmail, setSmtpEmail] = useState('');
+  const [smtpPassword, setSmtpPassword] = useState('');
+  const [smtpStatus, setSmtpStatus] = useState('idle'); // 'idle' | 'verifying' | 'success' | 'error'
+  const [smtpError, setSmtpError] = useState('');
+
   // Sync default values and check provider config when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -36,14 +43,56 @@ export default function SendEmailModal({
       setStatus('idle');
       setErrorMessage('');
       setDeliveryResult(null);
+      setIsConfigOpen(false);
+      setSmtpStatus('idle');
+      setSmtpError('');
 
       // Check if SMTP or Resend is configured
       fetch('/api/send-email')
         .then((res) => res.json())
-        .then((data) => setProviderConfig(data))
+        .then((data) => {
+          setProviderConfig(data);
+          if (!data.configured) {
+            setSmtpEmail(defaultRecipient || 'tejasmachhi2710@gmail.com');
+          }
+        })
         .catch(() => setProviderConfig({ configured: false, provider: 'None' }));
     }
   }, [isOpen, defaultRecipient, defaultSubject, templateName]);
+
+  const handleSaveSmtp = async (e) => {
+    if (e) e.preventDefault();
+    if (!smtpEmail || !smtpPassword) {
+      setSmtpError('Please provide both your Gmail address and 16-character App Password.');
+      return;
+    }
+
+    try {
+      setSmtpStatus('verifying');
+      setSmtpError('');
+
+      const res = await fetch('/api/configure-smtp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: smtpEmail,
+          appPassword: smtpPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to authenticate SMTP.');
+      }
+
+      setSmtpStatus('success');
+      setProviderConfig({ configured: true, provider: 'Gmail SMTP' });
+      setIsConfigOpen(false);
+    } catch (err) {
+      setSmtpStatus('error');
+      setSmtpError(err.message || 'SMTP verification failed.');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -139,16 +188,105 @@ export default function SendEmailModal({
               </div>
 
               {!providerConfig.configured && (
-                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: 'var(--text-primary)', marginBottom: '16px', lineHeight: 1.5 }}>
-                  <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: '3px' }}>
-                    ⚠️ Live Email Server Not Configured
+                <div style={{ background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '10px', padding: '12px 14px', fontSize: '12px', color: 'var(--text-primary)', marginBottom: '16px', lineHeight: 1.5 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <div style={{ fontWeight: 600, color: '#f59e0b' }}>
+                      ⚠️ Real Email Server Not Connected
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsConfigOpen(!isConfigOpen)}
+                      style={{
+                        background: isConfigOpen ? 'transparent' : '#f59e0b',
+                        color: isConfigOpen ? '#f59e0b' : '#000000',
+                        border: '1px solid #f59e0b',
+                        borderRadius: '6px',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isConfigOpen ? 'Hide Setup' : '⚡ Connect Gmail SMTP'}
+                    </button>
                   </div>
+
                   <div>
-                    To deliver real emails to actual inboxes, add your Gmail SMTP credentials (or Resend API key) to <code>.env.local</code>. (See <code>.env.example</code> for quick setup).
+                    Real emails cannot reach inboxes without an authenticated mail server.
                   </div>
-                  <div style={{ marginTop: '6px' }}>
-                    👉 Or click <strong>"Open in Mail App"</strong> below to send using your computer's mail application right now.
-                  </div>
+
+                  {isConfigOpen ? (
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed rgba(245, 158, 11, 0.3)' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                        1-Minute Google SMTP Connect:
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Your Gmail Address:</label>
+                          <input
+                            type="email"
+                            className={styles.inputField}
+                            style={{ height: '34px', fontSize: '12px' }}
+                            value={smtpEmail}
+                            onChange={(e) => setSmtpEmail(e.target.value)}
+                            placeholder="your_email@gmail.com"
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>
+                            16-character Google App Password:
+                            <a
+                              href="https://myaccount.google.com/apppasswords"
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: '#0071e3', marginLeft: '6px', textDecoration: 'underline' }}
+                            >
+                              (Get one here)
+                            </a>
+                          </label>
+                          <input
+                            type="password"
+                            className={styles.inputField}
+                            style={{ height: '34px', fontSize: '12px' }}
+                            value={smtpPassword}
+                            onChange={(e) => setSmtpPassword(e.target.value)}
+                            placeholder="e.g. abcd efgh ijkl mnop"
+                          />
+                        </div>
+
+                        {smtpError && (
+                          <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px' }}>
+                            {smtpError}
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleSaveSmtp}
+                          disabled={smtpStatus === 'verifying'}
+                          style={{
+                            background: '#0071e3',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            marginTop: '4px',
+                          }}
+                        >
+                          {smtpStatus === 'verifying' ? 'Verifying with Gmail...' : 'Save & Enable Real Delivery'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '6px', color: 'var(--text-secondary)' }}>
+                      👉 Click <strong>"Connect Gmail SMTP"</strong> above to enable real delivery, or use <strong>"Open in Mail App"</strong> below.
+                    </div>
+                  )}
                 </div>
               )}
 
