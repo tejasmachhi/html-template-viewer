@@ -26,15 +26,22 @@ export default function SendEmailModal({
   const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [errorMessage, setErrorMessage] = useState('');
   const [deliveryResult, setDeliveryResult] = useState(null);
+  const [providerConfig, setProviderConfig] = useState({ configured: false, provider: 'None' });
 
-  // Sync default values when modal opens or template changes
+  // Sync default values and check provider config when modal opens
   useEffect(() => {
     if (isOpen) {
       setEmailTo(defaultRecipient || '');
-      setSubject(defaultSubject || `Your ${templateName || 'Document'} from Apple Store`);
+      setSubject(defaultSubject || `Your ${templateName || 'Document'}`);
       setStatus('idle');
       setErrorMessage('');
       setDeliveryResult(null);
+
+      // Check if SMTP or Resend is configured
+      fetch('/api/send-email')
+        .then((res) => res.json())
+        .then((data) => setProviderConfig(data))
+        .catch(() => setProviderConfig({ configured: false, provider: 'None' }));
     }
   }, [isOpen, defaultRecipient, defaultSubject, templateName]);
 
@@ -126,8 +133,24 @@ export default function SendEmailModal({
                   <div style={{ fontSize: '11px', color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Template</div>
                   <div className={styles.tmplTitle}>{templateName}</div>
                 </div>
-                <span className={styles.tmplTag}>Ready to Send</span>
+                <span className={styles.tmplTag}>
+                  {providerConfig.configured ? `🟢 ${providerConfig.provider} Active` : '⚠️ No SMTP Server'}
+                </span>
               </div>
+
+              {!providerConfig.configured && (
+                <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: 'var(--text-primary)', marginBottom: '16px', lineHeight: 1.5 }}>
+                  <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: '3px' }}>
+                    ⚠️ Live Email Server Not Configured
+                  </div>
+                  <div>
+                    To deliver real emails to actual inboxes, add your Gmail SMTP credentials (or Resend API key) to <code>.env.local</code>. (See <code>.env.example</code> for quick setup).
+                  </div>
+                  <div style={{ marginTop: '6px' }}>
+                    👉 Or click <strong>"Open in Mail App"</strong> below to send using your computer's mail application right now.
+                  </div>
+                </div>
+              )}
 
               {/* Recipient Email Field */}
               <div className={styles.formGroup}>
